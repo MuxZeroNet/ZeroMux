@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeroMux</title>
+    <style>
+        body {
+            background-color: #F3F3F3;
+        }
+        
+        .upper {
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 100px;
+        }
+        
+        .title {
+            font-family: Times New Roman, serif;
+            font-size: 35pt;
+        }
+        
+        .desc {
+            font-size: 40%;
+            margin: 10px;
+            display: inline-block;
+        }
+        
+        .content {
+            text-align: center;
+            line-height: 1.5;
+            font-family: Arial, sans-serif;
+        }
+        
+        .content a {
+            text-decoration: none;
+        }
+        
+        #get-button {
+            margin-top: 10px;
+            margin-bottom: 15px;
+
+            border: 1px rgba(0, 0, 0, 0.5) solid;
+            border-radius: 5px;
+            transition: 0.25s;
+
+            font-size: 20pt;
+            display: inline-block;
+            cursor: pointer;
+            color: #000000;
+
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-top: 7px;
+            padding-bottom: 7px;
+        }
+
+        #get-button:hover {
+            border-color: rgba(0, 0, 0, 1);
+            transition: 0s;
+        }
+        
+        #get-button a {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        code {
+            font-family: Source Code Pro, Consolas, Courier New, Monospace;
+            text-decoration: underline;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #edit-config {
+            color: grey;
+            font-size: 10pt;
+        }
+    </style>
+    <script src="loader/files/first-run.js"></script>
+</head>
+
+<body>
+    <div class="upper">
+        <div class="title">
+            ZeroMux
+            <div class="first-run desc hidden">
+                First run
+            </div>
+            <div class="second-run py-mode desc hidden">
+                Configuration
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="first-run hidden">
+        <div class="content">
+            It seems that, this is your first time running ZeroMux.
+            <br><br>
+        </div>
+        <div class="content">
+            Once configured, ZeroMux can be used to share files
+            <br>to everyone you want, over the ZeroNetwork.
+            <br><br>
+        </div>
+        <div class="content" id="button-container">
+            <div id="get-button">
+                Configure Now<a href="http://127.0.0.1:43110/1CiDoBP8RiWziqiBGEd8tQMy66A6fmnw2V/big/docs/" target="_blank" id="tutorial-link" class="hidden">Configure Now</a>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="second-run hidden">
+        <div class="content">
+            Congratulations. This copy of ZeroMux has been set up!
+            <br><br>
+        </div>
+        <div class="hidden" id="move-folder">
+            <div class="content">
+                Now, place this <code>loader</code> folder onto your site.
+            </div>
+        </div>
+        <div class="hidden" id="permalink-container">
+            <div class="content">
+                <a href="loader/" id="permalink">Show My Files</a>
+            </div>
+        </div>
+        <div class="hidden" id="config-tips">
+            <div class="content">
+                <br><br><br><br><br><br>
+                <a href="#" id="edit-config">How to edit configurations?</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="py-mode hidden">
+        <div class="content">Redirecting you to your <a href="loader/loader.py" id="loader-page">File List</a>...</div>
+    </div>
+</body>
+
+    
+<script>
+    function isPyMode()
+    {
+        return location.pathname.endsWith("/zeromux.py");
+    }
+    
+    function isFileMode()
+    {
+        return location.href.startsWith("file:///");
+    }
+    
+    function isZeroNetMode()
+    {
+        return !isPyMode() && !isFileMode();
+    }
+    
+    function isFirstRun()
+    {
+        return (typeof _BUNDLE_FIRST_RUN === "undefined" || _BUNDLE_FIRST_RUN == true);
+    }
+    
+    function showElement(element)
+    {
+        element.classList.remove("hidden");
+    }
+    
+    function eventHandlers()
+    {
+        var tutorialLink = document.getElementById("tutorial-link");
+        document.getElementById("get-button").onclick = function()
+        {
+            tutorialLink.click();
+        };
+        
+        document.getElementById("edit-config").href = tutorialLink.href;
+    }
+    eventHandlers();
+    
+    if(isFileMode() || isPyMode())
+    {
+        showElement(document.getElementById("move-folder"));
+    }
+    else
+    {
+        showElement(document.getElementById("permalink-container"));
+    }
+    
+    if(isFileMode() || isZeroNetMode())
+    {
+        showElement(document.getElementById("config-tips"));
+    }
+</script>
+
+<script>
+    var elementsToShow = null;
+    if(isPyMode())
+    {
+        console.log("Configuration mode");
+        elementsToShow = document.getElementsByClassName("py-mode");
+        
+        document.getElementById("loader-page").click();
+        
+    }
+    else if(isFirstRun())
+    {
+        console.log("First run!");
+        elementsToShow = document.getElementsByClassName("first-run");
+    }
+    else
+    {
+        elementsToShow = document.getElementsByClassName("second-run");
+    }
+    
+    for(var element of elementsToShow)
+    {
+        showElement(element);
+    }
+</script>
+
+</html>

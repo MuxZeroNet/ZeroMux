@@ -1,0 +1,394 @@
+html, body {
+    background-color: #F3F3F3;
+    font-family: Arial, sans-serif;
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+}
+
+.banner {
+    background-color: #111111;
+    color: #EEEEEE;
+    height: 50px;
+    left: 0px;
+    top: 0px;
+    display: flex;
+}
+
+.logo {
+    margin-top: auto;
+    margin-bottom: auto;
+    padding-left: 20px;
+    font-size: 125%;
+}
+
+/* file & folder management UI */
+.page-body {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    left: 0px;
+    top: 50px;
+}
+
+.left {
+    position: absolute;
+    width: 15%;
+    height: 100%;
+    left: 0px;
+}
+
+.right {
+    background-color: #FFFFFF;
+    position: absolute;
+    width: 85%;
+    height: calc(100vh - 50px);
+    left: 15%;
+    
+    display: flex;
+    flex-direction: column;
+}
+
+.right-buttons {
+    background-color: #F3F3F3;
+}
+
+.file-list {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.folder-item {
+    padding: 10px;
+    border-bottom: 1px solid #EEEEEE7F;
+    white-space: nowrap;
+}
+
+.right-buttons, .left-button {
+    padding: 10px;
+    border-bottom: 1px solid transparent;
+}
+
+.left-button {
+    padding-left: 20px;
+    cursor: pointer;
+}
+
+.left-button i, .folder-item i, .right-buttons i, .dialog-content i {
+    margin-right: 5px;
+}
+
+.item-checkbox {
+    margin-right: 10px;
+}
+
+.folder-item:hover {
+    background-color: #EEEEEE;
+}
+
+.left-button:hover, .left-button-selected {
+    background-color: #DDDDDD;
+}
+
+.item-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.item-link:hover {
+    text-decoration: underline;
+}
+
+
+.toolbar-sep {
+    padding-right: 10px;
+    display: inline-block;
+}
+
+.button-container {
+    display: inline;
+}
+
+/* colors for icons */
+.color-folder {
+    color: orange;
+}
+
+.color-ppt {
+    color: #D04525;
+}
+
+.color-pdf {
+    color: #ED1C24;
+}
+
+.color-excel {
+    color: green;
+}
+
+.color-word {
+/*    color: #295496;*/
+    color: blue;
+}
+
+.color-pics {
+    color: blue;
+}
+
+.color-archive {
+    color: darkorange;
+}
+
+.hidden {
+    display: none;
+}
+
+
+.content {
+    text-align: center;
+    line-height: 1.5;
+    font-family: Arial, sans-serif;
+}
+
+.center-box {
+    width: 60%;
+    
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* file sharing panel */
+.file-area {
+    text-align: center;
+}
+
+#file-name, #selected-file {
+    word-wrap: break-word;
+}
+
+#file-size {
+    color: #999999;
+}
+
+#file-icon {
+    padding: 30px;
+    display: inline-block;
+    cursor: default;
+    border: 1px solid #DDDDDD;
+}
+
+.round-button {
+    margin-top: 10px;
+    margin-bottom: 15px;
+
+    border: 1px rgba(0, 0, 0, 0.5) solid;
+    border-radius: 5px;
+    transition: 0.25s;
+
+    display: inline-block;
+    cursor: pointer;
+    color: #000000;
+    font-size: 1.5em;
+
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
+
+.round-button:hover {
+    border-color: rgba(0, 0, 0, 1);
+    transition: 0s;
+}
+
+.round-textbox {
+    border: 1px solid #1111117F;
+    border-radius: 3px;
+    background-color: inherit;
+    
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    
+    width: 80%;
+    
+    font-size: inherit;
+    
+    transition: 0.25s;
+}
+
+.round-textbox:focus {
+    border: 1px solid #111111;
+}
+
+/*
+.fill-left {
+    float: left;
+}
+
+.fill-rest {
+    display: block;
+    overflow: hidden;
+    padding-right: 0px;
+}
+*/
+
+
+#download-container {
+    margin-top: 30px;
+}
+
+.progress-bar {
+    display: flex;
+    max-width: 80%;
+    min-width: 10%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    
+    background-color: #F0F0F0;
+    height: 20px;
+}
+
+.progress-block {
+    height: inherit;
+    flex-grow: 1;
+    transition: 0.1s;
+}
+
+
+/* colors for progress bar */
+.color-downloading {
+    background-color: orange;
+}
+
+.color-done {
+    background-color: #B10DC9;
+}
+
+.color-failed {
+    background-color: red;
+}
+
+/* white span */
+.white-bg {
+    background-color: white;
+    width: 100%;
+    transition: 0.25s;
+}
+
+.white-bg-small {
+    background-color: white;
+    padding: 15px;
+}
+
+.transparent-bg-small {
+    padding: 15px;
+}
+
+#progress-container {
+    padding-top: 20px;
+    padding-bottom: 80px;
+}
+
+#speed {
+    transition: 0.25s;
+}
+
+.transparent {
+    opacity: 0.35;
+}
+
+/* file uploader UI */
+.title {
+    font-family: Times New Roman, serif;
+    font-size: 35pt;
+}
+
+.subtitle {
+    font-size: 125%;
+    margin-bottom: 15px;
+}
+
+#selected-file {
+    color: grey;
+}
+
+/* dialog */
+.dialog-bg {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF7F;
+}
+
+.dialog {
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 15vh;
+    
+    z-index: 9999;
+    
+    background-color: #F3F3F3;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.25);
+}
+
+.dialog-title {
+    margin-bottom: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.dialog-title-text {
+    display: inline;
+}
+
+.dialog-buttons {
+    display: inline;
+    float: right;
+    cursor: pointer;
+}
+
+.dialog-content {
+    overflow: hidden;
+}
+
+.scrollable {
+    max-height: calc(60vh - 50px);
+    overflow: auto;
+}
+
+.grey-textbox-container {
+    border: 1px solid #DDDDDD;
+    width: 100%;
+    margin-top: 7px;
+    margin-bottom: 7px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    display: flex;
+}
+
+.grey-textbox {
+    font-size: inherit;
+    margin-left: 7px;
+    margin-right: 7px;
+    width: 100%;
+    border: none;
+}
+
+.grey-button {
+    float: right;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.grey-button:hover {
+    text-decoration: underline;
+}

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Public Files</title>
+    <script src="files/first-run.js"></script>
+    
+    <script src="js/zeromux/asmcrypto.js"></script>
+    <script src="js/zeromux/utils.js"></script>
+    <script src="js/zeromux/reader.js"></script>
+    <script src="js/zeromux/download.js"></script>
+    
+    <script src="js/list.js"></script>
+    <script src="js/backend.js"></script>
+    <script src="js/loader-ui.js"></script>
+    <script src="js/page-upload.js"></script>
+    <script src="js/page-share.js"></script>
+    
+    <script src="js/sandblaster.min.js"></script>
+    
+    <link rel="stylesheet" href="css/font-awesome-4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/loader.css">
+    
+</head>
+
+<body>
+    <div class="banner">
+        <div class="logo">ZeroMux</div>
+    </div>
+    <div class="page-body" id="page-body">
+        <div class="left">
+            <div class="left-button left-button-selected" id="button-browse">
+                <i class="fa fa-fw fa-folder-open" aria-hidden="true"></i>
+                Browse
+            </div>
+            <div class="left-button" id="button-all-files">
+                <i class="fa fa-fw fa-list" aria-hidden="true"></i>
+                All Files
+            </div>
+            <div class="left-button" id="button-documents">
+                <i class="fa fa-fw fa-file-text" aria-hidden="true"></i>
+                Documents
+            </div>
+            <div class="left-button" id="button-music">
+                <i class="fa fa-fw fa-music" aria-hidden="true"></i>
+                Music
+            </div>
+            <div class="left-button" id="button-pictures">
+                <i class="fa fa-fw fa-picture-o" aria-hidden="true"></i>
+                Pictures
+            </div>
+            <div class="left-button" id="button-videos">
+                <i class="fa fa-fw fa-video-camera" aria-hidden="true"></i>
+                Videos
+            </div>
+            <div class="left-button" id="button-archives">
+                <i class="fa fa-fw fa-file-archive-o" aria-hidden="true"></i>
+                Archives
+            </div>
+            <div class="left-button" id="button-torrents">
+                <i class="fa fa-fw fa-magnet" aria-hidden="true"></i>
+                Torrents
+            </div>
+        </div>
+        
+        <div class="right">
+            <div class="right-buttons hidden" id="buttons-default">
+                <div id="back-container" class="button-container hidden"><a href="#" class="item-link" id="button-back"><i class="fa fa-fw fa-chevron-left" aria-hidden="true"></i>Back</a>
+                <div class="toolbar-sep"></div></div>
+                <div id="py-container-1" class="button-container"><a href="#" class="item-link" id="button-upload"><i class="fa fa-fw fa-cloud-upload" aria-hidden="true"></i>Upload</a>
+                <div class="toolbar-sep"></div>
+                <a href="#" class="item-link" id="button-new-folder"><i class="fa fa-fw fa-folder" aria-hidden="true"></i>New Folder</a>
+                <div class="toolbar-sep"></div>
+                <a href="#" class="item-link hidden" id="button-paste"><i class="fa fa-fw fa-paste" aria-hidden="true"></i>Paste</a></div>
+                <div class="toolbar-sep"></div>
+            </div>
+            <div class="right-buttons" id="buttons-selected">
+                <input type="checkbox" class="item-checkbox hidden" id="upper-checkbox"><a href="#" class="item-link" id="button-copy-link"><i class="fa fa-fw fa-share-alt" aria-hidden="true"></i>Copy Link</a>
+                <div class="toolbar-sep"></div>
+                <div id="py-container-2" class="button-container"><a href="#" class="item-link" id="button-rename"><i class="fa fa-fw fa-pencil" aria-hidden="true"></i>Rename</a>
+                <div class="toolbar-sep"></div>
+                <a href="#" class="item-link" id="button-delete"><i class="fa fa-fw fa-trash" aria-hidden="true"></i>Delete</a>
+                <div class="toolbar-sep"></div>
+                <div id="cut-container" class="button-container"><a href="#" class="item-link" id="button-cut"><i class="fa fa-fw fa-cut" aria-hidden="true"></i>Move</a>
+                <div class="toolbar-sep"></div></div></div>
+                
+            </div>
+            <div class="file-list" id="file-list">
+                <div class="folder-item"><input type=checkbox class="item-checkbox hidden"><i class="fa fa-fw fa-folder color-folder" aria-hidden="true"></i><a href="#" class="item-link">Loading</a></div>
+                <div class="folder-item"><i class="fa fa-fw fa-folder color-folder" aria-hidden="true"></i><a href="#" class="item-link">Files...</a></div>
+                <div class="folder-item"><i class="fa fa-fw fa-folder color-folder" aria-hidden="true"></i><a href="#" class="item-link">Hold</a></div>
+                <div class="folder-item"><i class="fa fa-fw fa-folder color-folder" aria-hidden="true"></i><a href="#" class="item-link">Tight......</a></div>
+                
+            </div>
+            
+        </div>
+    </div>
+    <div class="sharing-panel hidden" id="sharing-panel">
+        <div class="center-box">
+            <div class="file-area hidden" id="file-area"><i id="file-icon" class="fa fa-fw fa-5x fa-magnet color-excel" aria-hidden="true"></i>
+            </div>
+        </div>
+        
+        <div class="center-box">
+            <div class="content">
+                <div id="file-name" class="hidden">
+                    Torrent.torrent
+                </div>
+                <div id="file-size" class="hidden">
+                    (30.75 KB)
+                </div>
+            </div>
+        </div>
+        
+        <div class="center-box hidden" id="download-outside">
+            <div class="content" id="download-container">
+                <div id="button-download" class="round-button hidden">
+                    Download
+                </div>
+            </div>
+        </div>
+        
+        <div class="white-bg hidden" id="white-part">
+            <div class="center-box" id="progress-container">
+                <div class="content" id="speed">
+                    Loading file.json
+                </div>
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-block color-empty"></div>
+                    <div class="progress-block color-downloading"></div>
+                    <div class="progress-block color-failed"></div>
+                    <div class="progress-block color-done"></div>
+                    <div class="progress-block color-done"></div>
+                    <div class="progress-block color-empty"></div>
+                    <div class="progress-block color-done"></div>
+                    <div class="progress-block color-empty"></div>
+                    <div class="progress-block color-empty"></div>
+                    <div class="progress-block color-empty"></div>
+                    <div class="progress-block color-empty"></div>
+                    <div class="progress-block color-empty"></div>
+                </div>
+                <div class="content hidden" id="save-container">
+                    <a href="#" id="save-blob">Save File</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="file-upload-panel hidden" id="file-upload-panel">
+        <div class="center-box"><div class="content title" id="reminder-title">Before you start</div><div class="content title hidden" id="normal-title">File Upload</div></div>
+        <div class="center-box white-bg-small reminder">
+            Welcome to ZeroNet, a public peer-to-peer network supported by content creators, seeders and you.<br>
+            Before uploading your first file, you are supposed to be informed that:
+        </div>
+        <div class="center-box white-bg-small reminder">
+            <div class="subtitle">
+                <i class="fa fa-fw fa-eye" aria-hidden="true"></i>
+                There is <b>no</b> private data
+            </div>
+            <b>Everyone can see your files,</b> since you are in a decentralized file sharing network, where everyone tries to spread data and information.<br><br>
+            For your privacy, you must make sure you do not upload files that you do not want to share publicly. ZeroMux <b>will not encrypt</b> or remove any file content or metadata for you.
+        </div>
+        <div class="center-box transparent-bg-small">
+            <div class="round-button" id="choose-file-button">Choose File</div>
+            <div class="toolbar-sep"></div>
+            <span id="selected-file">&nbsp;</span>
+            <div>
+                I am sure that this file does not contain any unencrypted private content or sensitive metadata.
+            </div>
+        </div>
+        <div class="center-box white-bg-small">
+            <div class="subtitle">
+                <i class="fa fa-fw fa-file-archive-o" aria-hidden="true"></i>
+                File size
+            </div>
+            <b>Small Files:</b>
+            ZeroMux is not efficient for transferring files <b>smaller than 350KB.</b> If you want to upload many small files, you can <b>pack them together</b> as a zip / rar / 7z archive to reduce the size of the file list.<br><br>
+            <b>Large Files:</b>
+            Files bigger than 700MB take a lot of memory to download. If you are sharing a file bigger than that size, you should split it into <b>700MB or smaller volumes</b> using 7Zip or WinRAR.
+        </div>
+        <div class="center-box transparent-bg-small">
+            <span class="fill-left" style="padding-top: 7px; padding-bottom: 7px">
+            Rename this file:
+            <div class="toolbar-sep"></div>
+            </span>
+            <span class="fill-rest"><input type="text" class="round-textbox" id="upload-new-name"></span>
+            <div>
+                <br>
+                I am sure that this file name above does not contain any information I don't want to share publicly.
+            </div>
+        </div>
+        <div class="center-box white-bg-small reminder">
+            <div class="subtitle">
+                <i class="fa fa-fw fa-heart" aria-hidden="true"></i>
+                Help out seeders and proxy owners
+            </div>
+            File sharing takes a lot of storage and bandwidth from both slow and fast computers that make up the ZeroNetwork. Please seed files, and donate to the people who are saving your files to make your files last long.
+        </div>
+        <div class="center-box transparent-bg-small hidden" id="repeated-request">
+            <div class="content" id="repeated-request-inner">
+                Click this button only once.<br>
+                Go to your <a href="./">home page</a><br>
+            </div>
+        </div>
+        <div class="center-box transparent-bg-small">
+            <div class="content">
+                <div class="round-button" id="confirm-upload-button">Upload</div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="dialog-bg hidden" id="new-folder-dialog">
+        <div class="dialog transparent-bg-small">
+            <div class="dialog-title">
+                <div class="dialog-title-text">
+                    Make a New Folder
+                </div>
+                <div class="dialog-buttons">
+                    <i class="fa fa-fw fa-close" aria-hidden="true"></i>
+                </div>
+            </div>
+            <div class="dialog-content white-bg-small">
+                <i class="fa fa-fw fa fa-folder color-folder"></i>
+                Folder Name:
+                <div class="toolbar-sep"></div>
+                <div>
+                    <div class="grey-textbox-container">
+                        <input class="grey-textbox" id="new-folder-name"></input>
+                    </div>
+                    <a class="grey-button" id="create-new-folder">Create</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dialog-bg hidden" id="rename-dialog">
+        <div class="dialog transparent-bg-small">
+            <div class="dialog-title">
+                <div class="dialog-title-text">
+                    Rename
+                </div>
+                <div class="dialog-buttons">
+                    <i class="fa fa-fw fa-close" aria-hidden="true"></i>
+                </div>
+            </div>
+            <div class="dialog-content white-bg-small">
+                <i id="rename-dialog-icon" class="fa fa-fw fa fa-folder color-folder"></i>
+                New Name:
+                <div class="toolbar-sep"></div>
+                <div>
+                    <div class="grey-textbox-container">
+                        <input class="grey-textbox" id="renamed-item-name"></input>
+                    </div>
+                    <a class="grey-button" id="rename-folder-item">Rename</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dialog-bg hidden" id="permalink-dialog">
+        <div class="dialog transparent-bg-small">
+            <div class="dialog-title">
+                <div class="dialog-title-text">
+                    File Permalinks
+                </div>
+                <div class="dialog-buttons">
+                    <i class="fa fa-fw fa-close" aria-hidden="true"></i>
+                </div>
+            </div>
+            <div class="dialog-content white-bg-small scrollable">
+                <div>
+                    <i class="fa fa-fw fa-magnet" aria-hidden="true"></i>
+                    <span>Torrent.torrent</span>
+                    <div class="grey-textbox-container">
+                        <input class="grey-textbox"></input>
+                    </div>
+                    <br>
+                </div>
+                <div>
+                    <i class="fa fa-fw fa-magnet" aria-hidden="true"></i>
+                    <span>Torrent2.torrent</span>
+                    <div class="grey-textbox-container">
+                        <input class="grey-textbox"></input>
+                    </div>
+                    <br>
+                </div>
+                <div>
+                    <i class="fa fa-fw fa-magnet" aria-hidden="true"></i>
+                    <span>Torrent3.torrent</span>
+                    <div class="grey-textbox-container">
+                        <input class="grey-textbox"></input>
+                    </div>
+                    <br>
+                </div>
+                <div>
+                    <i class="fa fa-fw fa-magnet" aria-hidden="true"></i>
+                    <span>Torrent4.torrent</span>
+                    <div class="grey-textbox-container">
+                        <input class="grey-textbox"></input>
+                    </div>
+                    <br>
+                </div>
+                <div>
+                    <i class="fa fa-fw fa-magnet" aria-hidden="true"></i>
+                    <span>Torrent5.torrent</span>
+                    <div class="grey-textbox-container">
+                        <input class="grey-textbox"></input>
+                    </div>
+                    <br>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <div class="dialog-bg hidden" id="delete-dialog">
+        <div class="dialog transparent-bg-small">
+            <div class="dialog-title">
+                <div class="dialog-title-text">
+                    Delete
+                </div>
+                <div class="dialog-buttons">
+                    <i class="fa fa-fw fa-close" aria-hidden="true"></i>
+                </div>
+            </div>
+            <div class="dialog-content white-bg-small scrollable">
+                <div id="delete-icon-area"><i id="delete-icon" class="fa fa-fw fa-folder color-folder"></i><span id="delete-file-name">AAA</span></div>
+                <br>
+                <span id="delete-file-counter">Delete this file/folder.</span>
+                Are you sure?
+                <div>
+                    <div class="grey-button"><div class="toolbar-sep"></div><span id="delete-cancel-button">Cancel</span></div>
+                    <div class="grey-button"><span id="delete-confirm-button" class="color-pdf">Delete</span><div class="toolbar-sep"></div></div>
+                </div>
+                
+            </div>
+        </div>
+    
+    <div class="dialog-bg hidden" id="block-dialog"></div>
+    
+</body>
+    <script src="js/main.js"></script>
+</html>
