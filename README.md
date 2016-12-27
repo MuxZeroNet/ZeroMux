@@ -6,7 +6,7 @@ ZeroMux is a file sharing toolkit and site builder for [ZeroNet](https://zeronet
 2. Unpack and run `wizard.py`
 3. After you made changes to your file list, put the `loader` folder onto your site.
 4. Sign and publish. Tell your friends to come visit your site.
-5. For instructions of how to configure your ZeroNet site, refer to [ZeroMux Docs on ZeroNet]([ZeroMux Blog on ZeroNet](http://127.0.0.1:43110/1CiDoBP8RiWziqiBGEd8tQMy66A6fmnw2V/big/docs/gentle-intro/) and read more about it.
+5. For instructions of how to configure your ZeroNet site, refer to [ZeroMux Docs on ZeroNet](http://127.0.0.1:43110/1CiDoBP8RiWziqiBGEd8tQMy66A6fmnw2V/big/docs/gentle-intro/) and read more about it.
 
 ## Reminders
 Because of how ZeroNet works, every file on your site is **public**, which means that everyone can see your files. You should never use ZeroMux as a personal data backup software. ZeroMux will not encrypt any data for you.
