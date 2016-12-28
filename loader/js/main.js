@@ -19,35 +19,35 @@ function main()
         // file sharing
         initSharePanelUi();
     }
-    else 
+    else
     {
         // default: file management
         var pyMode = true;
         var andGoTo = "C:/";
-        
+
         pyMode = location.pathname.endsWith("/loader.py");
-        
+
         if(location.search.startsWith("?2"))
         {
             // folder sharing
             andGoTo = location.search.split("&")[0];
         }
-        
+
         initUi(pyMode);
         reloadData(andGoTo);
     }
-    
-    
+
+
 }
 
 function initUi(pyMode=true)
 {
     var byId = function(a) { return document.getElementById(a); };
-    
+
     // buttons on the left
     var buttonBrowse = byId("button-browse");
     buttonBrowse.onclick = makeSelect(buttonBrowse, makeFolderReload("C:/"));
-    
+
     var commands = [
         ["button-all-files", ""],
         ["button-documents", "document-"],
@@ -57,16 +57,16 @@ function initUi(pyMode=true)
         ["button-archives", "archive"],
         ["button-torrents", "torrent"],
     ];
-    
+
     for(var cmd of commands)
     {
         var id = cmd[0];
         var filter = cmd[1];
-        
+
         var button = byId(id);
         button.onclick = makeSelect(button, makeFileDisplay(filter));
     }
-    
+
     // checkbox on the top
     var checkBoxTop = byId("upper-checkbox");
     checkBoxTop.onclick = function(e)
@@ -80,29 +80,29 @@ function initUi(pyMode=true)
             resetAllBoxes();
         }
     }
-    
+
     // back button
     byId("button-back").onclick = function(e)
     {
         var sep = SepPathAndName(GlobalCurrentPath);
         var parentFolder = sep[0];
         var currentFolder = sep[1];
-        
+
         if(parentFolder != null)
         {
             goToFolder(parentFolder);
         }
-        
+
         return false;
     }
-    
+
     // py mode?
     if(!pyMode)
     {
         hideElement(byId("py-container-1"));
         hideElement(byId("py-container-2"));
     }
-    
+
     // upload button
     setUploadButton("C:/");
     // new folder, rename, delete, copy link
@@ -121,7 +121,7 @@ function initDialog()
         showNewFolderDialog();
         return false;
     };
-    
+
     // rename
     initRenameDialog();
     document.getElementById("button-rename").onclick = function()
@@ -130,7 +130,7 @@ function initDialog()
         if(selectedItems.length == 1)
         {
             var selected = selectedItems[0];
-            
+
             var itemType = selected.getAttribute("data-type");
             var pathHint = selected.getAttribute("data-hint");
             if(pathHint.length == 0)
@@ -146,22 +146,22 @@ function initDialog()
             }
             var filePath = pathHint + selected.getAttribute("data-id");
             var oldName = selected.getAttribute("data-name");
-            
+
             var iconStyles = getDisplayedIcon(selected);
-            
+
             var renameButton = selectRenameConfirmButton();
             attachToken(renameButton,
             function()
             {
                 showRenameDialog(itemType, oldName, filePath, iconStyles);
             }, dealWithFailure);
-            
-            
+
+
         }
-        
+
         return false;
     };
-    
+
     // delete
     initDeleteFileDialog();
     document.getElementById("button-delete").onclick = function()
@@ -173,14 +173,14 @@ function initDialog()
             showDeleteFileDialog(getAllCheckedItems());
         });
     };
-    
+
     // copy link
     document.getElementById("button-copy-link").onclick = function()
     {
         showCopyLinkDialog(getAllCheckedItems());
         return false;
     };
-    
+
 }
 
 function selectCutButton()
@@ -225,44 +225,44 @@ function checkClipBoardAndShow()
 function initClipBoard()
 {
     clearClipBoard();
-    
+
     var buttonCut = selectCutButton();
     var buttonPaste = selectPasteButton();
-    
+
     buttonCut.onclick = function()
     {
         cutFiles(); // replace items in clipboard
-        
+
         // show paste
         showCutPaste(true);
         resetAllBoxes();
-        
+
         // switch style
         changeFileStyleClipBoard();
-        
+
         return false;
     };
-    
+
     buttonPaste.onclick = function()
     {
         showBlockDialog();
-        
+
         pasteFiles();
-        
+
         checkClipBoardAndShow();
-        
+
         return false;
     };
-    
+
 }
-    
+
 function cutFiles()
 {
     var selected = getAllCheckedItems();
-    
+
     var ids = selected.map(item => [item.getAttribute("data-id"), item.getAttribute("data-type")]);
     var pathHint = GlobalCurrentPath;
-    
+
     setClipBoard(pathHint, ids);
 }
 
@@ -271,9 +271,9 @@ function pasteFiles()
     var pathHint = getClipBoardPathHint();
     var items = getClipBoardItems();
     var toPath = GlobalCurrentPath;
-    
+
     clearClipBoard();
-    
+
     pasteFilesRecursive(toPath, pathHint, items);
 }
 
@@ -285,31 +285,31 @@ function pasteFilesRecursive(toPath, pathHint, items, stage=0)
         hideBlockDialog();
         // refresh view
         refreshView();
-        
+
         if(e != null)
         {
             dealWithFailure(e);
         }
     };
-    
+
     if(stage > 1)
     {
         resetUi();
         return;
     }
-    
+
 //    var currentItem = items[index];
 //    var itemType = currentItem[1];
 //    var path = pathHint + "/" + currentItem[0];
-    
+
     var itemType = (stage == 0) ? "file" : "folder";
     var filteredItems = items.filter(i => i[1] == itemType);
     var path = filteredItems.map(i => pathHint + "/" + i[0]).join("|");
-    
+
     console.log(filteredItems);
     console.log(path.split("|"));
-    
-    
+
+
     if(path.length == 0)
     {
         // next stage
@@ -318,7 +318,7 @@ function pasteFilesRecursive(toPath, pathHint, items, stage=0)
     else
     {
         console.log(["Moving", itemType, path, "to", toPath].join(" "));
-    
+
         getToken(function(token)
         {
             move(itemType, path, toPath, token, function()
@@ -329,13 +329,13 @@ function pasteFilesRecursive(toPath, pathHint, items, stage=0)
 
         }, resetUi);
     }
-    
+
 }
 
 function clearClipBoard()
 {
     GlobalClipBoard = {};
-    
+
     console.info("Clipboard Cleared");
 }
 
@@ -376,7 +376,7 @@ function changeFileStyleClipBoard()
     {
         return;
     }
-    
+
     var elements = document.getElementsByClassName("folder-item");
     var inClipBoard = getClipBoardItems().map(i => i[0]);
     for(var el of elements)
@@ -390,12 +390,12 @@ function changeFileStyleClipBoard()
             elementOpaque(el);
         }
     }
-    
-    
-    
+
+
+
     for(var item of inClipBoard)
     {
-        
+
     }
 }
 
@@ -419,11 +419,11 @@ function reloadData(andGoTo="C:/", callback=null)
             }
         };
     }
-    
+
     requestText(
         "files/list.json" + "?" + dummyQueries(),
         "application/json",
-        
+
         function(xmlHttp)
         {
             if(xmlHttp.status >= 400)
@@ -435,10 +435,10 @@ function reloadData(andGoTo="C:/", callback=null)
             {
                 loadData(xmlHttp.responseText);
             }
-            
+
             c();
         },
-        
+
         function(xmlHttp, reason)
         {
             console.error(reason);
@@ -451,12 +451,12 @@ function reloadData(andGoTo="C:/", callback=null)
 function loadData(listJsonStr)
 {
     GlobalAllFolderIds = new Set();
-    
+
     if(GlobalClipBoard == null)
     {
         clearClipBoard();
     }
-    
+
     var ff = ReadRawListJson(listJsonStr);
     var files = ff[0];
     var folders = ff[1];
@@ -465,16 +465,16 @@ function loadData(listJsonStr)
         files = [];
         folders = [];
     }
-    
+
     GlobalFileList = ReadRawFileList(files);
     GlobalRootFolderContent = ReadRawFolderContent(folders, C_DRIVE_SLASH, GlobalAllFolderIds);
 }
 
 function goToFolder(path)
-{    
+{
     var folder = null;
     var cleanPath = "";
-    
+
     if(path.startsWith("?"))
     {
         var folderId = path.substring(1);
@@ -489,22 +489,22 @@ function goToFolder(path)
         cleanPath = SepPathHint(path).join("/") + "/";
         folder = FindFolderByPath(cleanPath, GlobalRootFolderContent, GlobalAllFolderIds);
     }
-    
+
     if(folder == null)
     {
         // defaults to C:/ instead
         // cleanPath = "C:/";
         // folder = FindFolderByPath(cleanPath, GlobalRootFolderContent, GlobalAllFolderIds);
         // console.warn("Folder not found. The root folder will be loaded.");
-        
+
         clearPanel();
         showNewFile("Folder not found! Click here to go to root folder.", location.href.split("?")[0]);
         return;
     }
-    
+
     GlobalCurrentPath = cleanPath;
-    
-    
+
+
     // toolbar
     if(FolderId(folder) == ROOT_FOLDER_ID)
     {
@@ -529,7 +529,7 @@ function clearPanel()
 {
     var filePanel = document.getElementById("file-list");
     filePanel.innerHTML = "";
-    
+
     resetAllBoxes();
 }
 
@@ -567,12 +567,12 @@ function sortFolderItems(a, b, fileList)
             var file = fileList[pointerTarget]; // #!
             bName = FileName(file);
         }
-        
-        
+
+
         var aExt = sepExt(aName);
         var bExt = sepExt(bName);
-        
-        var extCompare = aExt.localCompare(bExt);
+
+        var extCompare = aExt.localeCompare(bExt);
         if(extCompare != 0)
         {
             return extCompare;
@@ -587,22 +587,22 @@ function sortFolderItems(a, b, fileList)
 function putFolderToUi(folderContent, folderPath, fileList)
 {
     clearPanel();
-    
+
     // sort
     var orderedArray = [];
-    
+
     for(var key in folderContent)
     {
         var item = SelectItemInContent(folderContent, key);
         orderedArray.push(item);
     }
-    
+
     orderedArray = orderedArray.sort(function(a, b) { return sortFolderItems(a, b, fileList); });
-    
+
     for(var item of orderedArray)
     {
         console.log(item);
-        
+
         if(IsFolderInfo(item))
         {
             putFolder(item);
@@ -621,7 +621,7 @@ function putFolderToUi(folderContent, folderPath, fileList)
 function putFolder(folderInfo)
 {
     var folderName = FolderName(folderInfo);
-    
+
     var folderPath = FolderPathHint(folderInfo) + "/" + FolderId(folderInfo);
     var onclick = makeFolderOnClick(folderPath);
     var href = "#" + FolderId(folderInfo);
@@ -631,7 +631,7 @@ function putFolder(folderInfo)
     element.setAttribute("data-id", FolderId(folderInfo));
     element.setAttribute("data-hint", FolderPathHint(folderInfo));
     element.setAttribute("data-name", folderName);
-    
+
     return element;
 }
 
@@ -640,13 +640,13 @@ function putFile(fileInfo, pathHint, fileList)
     var pointerTarget = PointerTarget(fileInfo);
     // var file = FindFile(ConstructFileInfo(pointerTarget), fileList);
     var file = fileList[pointerTarget]; // #!
-    
+
     if(file == null)
     {
         console.warn("File " + pointerTarget + " not found.");
         return;
     }
-    
+
     var fileName = FileName(file);
 
     var href = "?" + pointerTarget;
@@ -666,7 +666,7 @@ function makeFolderOnClick(folderPath)
         goToFolder(folderPath);
         return false;
     };
-    
+
     return f;
 }
 
@@ -677,7 +677,7 @@ function makeFolderReload(folderPath)
         reloadData(folderPath);
         return false;
     }
-    
+
     return f;
 }
 
@@ -694,7 +694,7 @@ function makeSelect(selectWhat, afterThat)
 
         afterThat();
     };
-    
+
     return f;
 }
 
@@ -705,7 +705,7 @@ function makeFileDisplay(filter)
         fileDisplay(filter);
         return false;
     };
-    
+
     return f;
 }
 
@@ -717,7 +717,7 @@ function fileDisplay(filter)
     clearClipBoard();
     setUploadButton("C:/");
     clearPanel();
-    
+
     var extensionList = [];
     if(filter != "")
     {
@@ -729,12 +729,12 @@ function fileDisplay(filter)
             }
         }
     }
-    
+
     var fileList = GlobalFileList;
-    
+
     // sort
     var orderedFileList = [];
-    
+
     for(var key in fileList)
     {
         var fileInfo = fileList[key]; // #!
@@ -744,8 +744,8 @@ function fileDisplay(filter)
     {
         return FileName(a).localeCompare(FileName(b));
     });
-    
-    
+
+
     for(var fileInfo of orderedFileList)
     {
         if(filter == "")
@@ -755,12 +755,12 @@ function fileDisplay(filter)
         else
         {
             var fileName = FileName(fileInfo);
-        
+
             if(fileName.includes("."))
             {
                 var sepByDots = fileName.split(".");
                 var ext = sepByDots[sepByDots.length - 1].toLowerCase().trim();
-                
+
                 if(extensionList.includes(ext))
                 {
                     putFile(fileInfo, "", fileList);
@@ -768,7 +768,7 @@ function fileDisplay(filter)
             }
         }
     }
-    
+
 }
 
 function refreshView()
@@ -830,10 +830,10 @@ function showDeleteDialogIcon(iconStyle, displayedName)
 {
     var icon = document.getElementById("delete-icon");
     var fileName = document.getElementById("delete-file-name");
-    
+
     icon.classList = iconStyle;
     fileName.innerText = displayedName;
-    
+
     var iconArea = document.getElementById("delete-icon-area");
     showElement(iconArea);
 }
@@ -865,7 +865,7 @@ function initNewFolderDialog()
 {
     var newFolderDialog = selectNewFolderDialog();
     var createButton = selectCreateButton();
-    
+
     createButton.onclick = function()
     {
         var tokenAttached = peakAttachedToken(createButton);
@@ -874,7 +874,7 @@ function initNewFolderDialog()
             console.error("No token!");
             return;
         }
-        
+
         var newName = selectNewFolderNameBox().value.trim();
         if(newName.length == 0)
         {
@@ -885,7 +885,7 @@ function initNewFolderDialog()
         popAttachedToken(createButton);
 
         // send request
-        newFolder(GlobalCurrentPath, newName, tokenAttached, 
+        newFolder(GlobalCurrentPath, newName, tokenAttached,
         function()
         {
             // close dialog
@@ -895,7 +895,7 @@ function initNewFolderDialog()
 
         }, dealWithFailure);
     };
-    
+
     selectNewFolderNameBox().onkeyup = function(e)
     {
         if(e.keyCode == 13)
@@ -908,7 +908,7 @@ function initNewFolderDialog()
 function showNewFolderDialog()
 {
     selectNewFolderNameBox().value = "New Folder";
-    
+
     var shown = function()
     {
         setTimeout(function()
@@ -916,18 +916,18 @@ function showNewFolderDialog()
             var textbox = selectNewFolderNameBox();
             textbox.select();
         }, 1);
-        
+
         console.log("shown");
-        
+
     };
-    
+
     var cancel = function(){console.log("cancelled");}
-    
+
     var createButton = selectCreateButton();
     attachToken(createButton, function()
     {
         showDialog(selectNewFolderDialog(), shown, cancel);
-        
+
     }, dealWithFailure);
 }
 
@@ -942,41 +942,41 @@ function initRenameDialog()
             console.error("No token.");
             return;
         }
-        
+
         var textbox = selectRenamedItemTextBox();
         var newName = textbox.value.trim();
-        
+
         if(newName.length == 0)
         {
             return;
         }
-        
+
         var oldName = renameButton.getAttribute("data-old-name");
         if(newName == oldName)
         {
             hideElement(selectRenameDialog());
             return;
         }
-        
+
         popAttachedToken(renameButton);
-        
+
         var itemType = renameButton.getAttribute("data-item-type");
         var path = renameButton.getAttribute("data-path");
-        
+
         // send request
         rename(itemType, path, newName, tokenAttached,
         function()
         {
             // hide dialog
             hideElement(selectRenameDialog());
-            
+
             // refresh
             refreshView();
-            
-            
+
+
         }, dealWithFailure)
     };
-    
+
     selectRenamedItemTextBox().onkeyup = function(e)
     {
         if(e.keyCode == 13)
@@ -999,14 +999,14 @@ function showRenameDialog(itemType, oldName, filePath, iconStyles)
     // set rename button
     var renameButton = selectRenameConfirmButton();
     makeRenameButtonHandler(itemType, filePath, oldName);
-    
+
     // set textbox
     var textbox = selectRenamedItemTextBox();
     textbox.value = oldName;
-    
+
     // set icon
     selectRenameDialogIcon().classList = iconStyles;
-    
+
     showDialog(selectRenameDialog(), function()
     {
         setTimeout(function()
@@ -1014,38 +1014,38 @@ function showRenameDialog(itemType, oldName, filePath, iconStyles)
             textbox.select();
         }, 1);
     }, nop);
-    
+
 }
 
 function makeLinkEntry(iconStyle, displayedName, permalink)
 {
     // TODO
     var div = document.createElement('div');
-    
+
     var icon = document.createElement('i');
     icon.classList = iconStyle;
-    
+
     var nameSpan = document.createElement('span');
     nameSpan.innerText = displayedName.trim();
-    
+
     var textboxContainer = document.createElement('div');
     textboxContainer.classList = "grey-textbox-container";
-    
+
     var textbox = document.createElement('input');
     textbox.classList = "grey-textbox";
     textbox.value = permalink;
     textbox.onclick = function() { textbox.select(); };
-    
+
     textboxContainer.appendChild(textbox);
-    
-    
+
+
     div.appendChild(icon);
     div.appendChild(nameSpan);
     div.appendChild(textboxContainer);
     div.appendChild(document.createElement('br'));
-    
+
     return div;
-    
+
     /*
     <div>
         <i class="fa fa-fw fa-magnet" aria-hidden="true"></i>
@@ -1063,24 +1063,24 @@ function showCopyLinkDialog(selectedElements)
     var dialog = document.getElementById("permalink-dialog");
     var dialogContent = dialog.getElementsByClassName("dialog-content")[0];
     dialogContent.innerHTML = "";
-    
+
     for(var element of selectedElements)
     {
         var iconStyle = getDisplayedIcon(element);
         var displayedName = getDisplayedName(element);
-        
+
         var sepPath = location.pathname.split("/");
         var itemId = element.getAttribute("data-id");
         var permalink = sepPath.slice(0, sepPath.length - 1).join("/") + "/?" + itemId;
-        
-        
+
+
         var entryDiv = makeLinkEntry(iconStyle, displayedName, permalink);
-        
+
         dialogContent.appendChild(entryDiv);
     }
-    
-    
-    
+
+
+
     showDialog(dialog, function()
     {
         dialogContent.scroll({"top": 0, "left": 0});
@@ -1090,12 +1090,12 @@ function showCopyLinkDialog(selectedElements)
 function initDeleteFileDialog()
 {
     var deleteDialog = selectDeleteDialog();
-    
+
     selectDeleteCancelButton().onclick = function()
     {
         hideElement(deleteDialog);
     };
-    
+
     var confirmDelete = selectDeleteConfirmButton();
     confirmDelete.onclick = function()
     {
@@ -1105,25 +1105,25 @@ function initDeleteFileDialog()
             dealWithFailure("No token");
             return;
         }
-        
+
         popAttachedToken(confirmDelete);
-        
+
         var itemList = [];
         var elements = getAllCheckedItems();
         for(var el of elements)
         {
             itemList.push(GlobalCurrentPath + "/" + el.getAttribute("data-id"));
         }
-        
+
         ajaxDelete(itemList.join("|"), tokenAttached,
         function()
         {
             hideElement(deleteDialog);
             refreshView();
-            
+
         }, dealWithFailure);
     };
-    
+
 }
 
 function showDeleteFileDialog(selectedElements)
@@ -1131,13 +1131,13 @@ function showDeleteFileDialog(selectedElements)
     var iconStyle = null;
     var displayedName = null;
     var counterHtml = "";
-    
+
     if(selectedElements.length == 1)
     {
         var element = selectedElements[0];
         iconStyle = getDisplayedIcon(element);
         displayedName = getDisplayedName(element);
-        
+
         var elementType = (element.getAttribute("data-type") == "folder") ? "folder" : "file";
         counterHtml = "Delete <b>this " + elementType + ".</b>";
     }
@@ -1145,7 +1145,7 @@ function showDeleteFileDialog(selectedElements)
     {
         var fileCount = 0;
         var folderCount = 0;
-        
+
         for(var element of selectedElements)
         {
             var elementType = element.getAttribute("data-type");
@@ -1158,24 +1158,24 @@ function showDeleteFileDialog(selectedElements)
                 fileCount += 1;
             }
         }
-        
+
         var strFiles = "";
         if(fileCount > 0)
         {
             strFiles = fileCount + " file" + ((fileCount > 1) ? "s" : "");
         }
-        
+
         var strFolders = "";
         if(folderCount > 0)
         {
             strFolders = folderCount + " folder" + ((folderCount > 1) ? "s" : "");
         }
-        
+
         var strAnd = (fileCount > 0 && folderCount > 0) ? " and " : "";
-        
+
         counterHtml = "Delete <b>" + strFiles + "</b>" + strAnd + "<b>" + strFolders + "</b>.";
     }
-    
+
     if(iconStyle != null && iconStyle.length > 0)
     {
         showDeleteDialogIcon(iconStyle, displayedName);
@@ -1184,9 +1184,9 @@ function showDeleteFileDialog(selectedElements)
     {
         hideDeleteDialogIcon();
     }
-    
+
     setDeleteDialogCounter(counterHtml);
-    
+
     showDialog(selectDeleteDialog(), nop, nop);
 }
 

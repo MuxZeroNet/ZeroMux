@@ -29,6 +29,8 @@ if sys.version_info[0] != 2:
 
     exit()
 
+print "ZeroMux Bundle"
+
 import argparse
 
 import BaseHTTPServer
@@ -48,8 +50,7 @@ import hashlib
 import codecs
 
 import datetime
-#import platform
-#import subprocess
+
 
 sys.path.insert(0, "pysrc")
 from FileChunks import *
@@ -57,11 +58,11 @@ from DataStructure import *
 from AbstractRW import *
 
 
-class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class Backend(BaseHTTPServer.BaseHTTPRequestHandler):
     state_refuse_choose_file = False
     selected_file = ""
     selected_vpath = ""
-    token_list = []
+    token_list = set()
     uploaded_files = {}
 
     def do_HEAD(self):
@@ -129,11 +130,15 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.ServeStaticFile("/loader/index.html")
 
     def HandleGetToken(self):
-        token = os.urandom(32).encode('hex')
-        while token in MyHandler.token_list:
-            token = os.urandom(32).encode('hex')
+        def GenToken():
+            return os.urandom(32).encode('base64') \
+                .replace('+', 'M').replace('/', 'u').replace('=', 'X').replace('\n', 'x')
 
-        MyHandler.token_list.append(token)
+        token = GenToken()
+        while token in Backend.token_list:
+            token = GenToken()
+
+        Backend.token_list.add(token)
 
         # respond
         self.SendNormalHeaders("application/json")
@@ -145,7 +150,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.ServeErrorPage("No queries.")
             return
 
-        if len(MyHandler.token_list) == 0:
+        if len(Backend.token_list) == 0:
             self.ServeErrorPage("Invalid token.")
             return
 
@@ -158,26 +163,19 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 
         token = token_values[0]
-        if len(token) < 5 or token not in MyHandler.token_list:
+        if len(token) < 5 or token not in Backend.token_list:
             self.ServeErrorPage("Invalid token.")
             return
 
-        MyHandler.token_list.remove(token)
+        Backend.token_list.remove(token)
         func()
 
     def ServeErrorPage(self, message=""):
         self.SendErrorHeaders()
         self.wfile.write("Bad Request! " + message)
 
-    def HandleUpload(self, path_header):
-        print("MyHandler.state_refuse_upload", MyHandler.state_refuse_choose_file)
 
-        if MyHandler.state_refuse_choose_file:
-            self.ServeErrorPage("Duplicated requests.")
-            return
-
-        # MyHandler.state_refuse_choose_file = True
-
+    def ShowFileDialog(self):
         # show file dialog
         root = tk.Tk()
         root.wm_title("ZeroMux")
@@ -192,8 +190,21 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         file_path = tkFileDialog.askopenfilename()
         root.withdraw()
 
+        return file_path
+
+    def HandleUpload(self, path_header):
+        print("self.state_refuse_upload", Backend.state_refuse_choose_file)
+
+        if Backend.state_refuse_choose_file:
+            self.ServeErrorPage("Duplicated requests.")
+            return
+
+        # Backend.state_refuse_choose_file = True
+
+        file_path = self.ShowFileDialog()
+
         if file_path:
-            MyHandler.selected_file = file_path
+            Backend.selected_file = file_path
 
         # determine virtual path
         path_hint = GetParam(path_header, "path=")
@@ -201,26 +212,28 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             # No path was specified. Use root path
             path_hint = C_DRIVE_SLASH
 
-        MyHandler.selected_vpath = "/".join(SepPathHint(path_hint))
+        Backend.selected_vpath = "/".join(SepPathHint(path_hint))
 
         # respond
         self.SendNormalHeaders("application/json")
         self.wfile.write(json.dumps({
             "status": True,
-            "filePath": MyHandler.selected_file,
-            "virtualDir": MyHandler.selected_vpath,
+            "filePath": Backend.selected_file,
+            "virtualDir": Backend.selected_vpath,
         }))
 
-        MyHandler.state_refuse_choose_file = False
+        Backend.state_refuse_choose_file = False
 
     def HandleShowFile(self):
         json_response = {"status": True, "detail": "notAvailable"}
 
-        if not MyHandler.state_refuse_choose_file:
-            stripped_file_path = MyHandler.selected_file.strip()
+        if not Backend.state_refuse_choose_file:
+            stripped_file_path = Backend.selected_file.strip()
             if stripped_file_path and os.path.isfile(stripped_file_path):
                 json_response["detail"] = "selected"
                 json_response["filePath"] = stripped_file_path
+            else:
+                json_response["strippedFilePath"] = stripped_file_path
 
         self.SendNormalHeaders("application/json")
         self.wfile.write(json.dumps(json_response))
@@ -228,9 +241,9 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def HandleConfirmUpload(self, path_header):
         session_token = GetParam(path_header, "token=")
         given_file_name = GetParam(path_header, "rename=")
-        file_path = MyHandler.selected_file
+        file_path = Backend.selected_file
 
-        path_hint = MyHandler.selected_vpath
+        path_hint = Backend.selected_vpath
         real_folder_ref = FindFolderByPath(path_hint, global_root_folder_content, global_all_folder_ids)
         print "real_folder_ref", real_folder_ref
 
@@ -262,18 +275,18 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 # save list.json
                 SaveListJson()
                 # clear selected file
-                MyHandler.selected_file = ""
+                Backend.selected_file = ""
                 # resp message
                 resp_message = FileId(instance)
                 # add to uploaded file list
-                MyHandler.uploaded_files[session_token] = resp_message
+                Backend.uploaded_files[session_token] = resp_message
 
         # respond
         self.StatusResp(resp_status, resp_message)
 
 
     def HandleShowUploaded(self):
-        self.StatusResp(True, MyHandler.uploaded_files)
+        self.StatusResp(True, Backend.uploaded_files)
 
 
     def HandleNewFolder(self, path_header):
@@ -449,11 +462,11 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         resp["global file IDs"] = global_file_list.keys()
         resp["global_all_folder_ids"] = list(global_all_folder_ids)
 
-        resp["state_refuse_choose_file"] = MyHandler.state_refuse_choose_file
-        resp["selected_file"] = MyHandler.selected_file
-        resp["selected_vpath"] = MyHandler.selected_vpath
-        resp["uploaded_files"] = MyHandler.uploaded_files
-        resp["token list length"] = len(MyHandler.token_list)
+        resp["state_refuse_choose_file"] = Backend.state_refuse_choose_file
+        resp["selected_file"] = Backend.selected_file
+        resp["selected_vpath"] = Backend.selected_vpath
+        resp["uploaded_files"] = Backend.uploaded_files
+        resp["token list length"] = len(Backend.token_list)
 
         self.SendNormalHeaders("application/json")
         for key in resp:
@@ -539,6 +552,12 @@ def GetListJsonPath():
 def GetTrashFolder():
     return GetRootPath() + "/trash/"
 
+def MakeFilesFolder():
+    files_folder = GetLoaderFolder() + "/files/"
+    if not os.path.isdir(files_folder):
+        os.mkdir(files_folder)
+    return files_folder
+
 def ChooseContentType(ext):
     x = ext.lower().strip()
     ext_type = {".css": "text/css", ".htm": "text/html", ".html": "text/html",
@@ -581,9 +600,7 @@ def HandleFileInput(file_path, given_file_name, folder_name, existing_ids):
         given_file_name = "No Name"
 
     # the "files/" folder
-    files_folder = loader_folder + "/files/"
-    if not os.path.isdir(files_folder):
-        os.mkdir(files_folder)
+    files_folder = MakeFilesFolder()
 
     # use split to get real file name
     real_file_name = os.path.split(file_path)[1]
@@ -615,6 +632,7 @@ def SaveListJson():
 
     print "Updating", GetListJsonPath(), "......"
 
+    files_folder = MakeFilesFolder()
     file_stream = io.open(GetListJsonPath(), 'w', encoding='utf-8')
     file_stream.write(unicode(json.dumps(to_write)))
 
@@ -632,15 +650,13 @@ def SaveFirstRunJs():
 
     print "Updating first-run.js ......"
 
-    files_folder = GetLoaderFolder() + "/files"
-    if not os.path.isdir(files_folder):
-        os.mkdir(files_folder)
+    files_folder = MakeFilesFolder()
 
     first_run_js = files_folder + "/first-run.js"
 
-    js_content = """_BUNDLE_FIRST_RUN = false;
-                    _BUNDLE_LAST_MODIFIED = '%s';
+    js_content = """_BUNDLE_FIRST_RUN = false; _BUNDLE_LAST_MODIFIED = '%s';
                  """ % datetime.date.today().strftime("%Y-%m-%d 08:00")
+    js_content = js_content.strip()
 
     js_stream = io.open(first_run_js, 'w', encoding='utf-8')
     js_stream.write(unicode(js_content))
@@ -651,10 +667,12 @@ def SaveFirstRunJs():
 
     FlagFirstRunModified = True
 
+
+
 def ServerForever():
     host_name = '127.0.0.1'
     port_number = 18905
-    httpd = BaseHTTPServer.HTTPServer((host_name, port_number), MyHandler)
+    httpd = BaseHTTPServer.HTTPServer((host_name, port_number), Backend)
 
     print("Server Starts - %s:%s" % (host_name, port_number))
     webbrowser.open_new_tab("http://" + host_name + ":" + str(port_number) + "/");

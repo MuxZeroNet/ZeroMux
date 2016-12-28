@@ -1,19 +1,13 @@
 #!/usr/bin/env python2
 # coding: utf-8
 
-import sys
 import os
 import shutil
-
-import urllib
-import io
-
 
 import re
 import json
 import random
 
-import json
 import hashlib
 import codecs
 
@@ -167,6 +161,9 @@ def SplitFile(filePath, savePath, relativePath, givenFileName, idealChunkSize=50
         chunkFileInfo.write(chunkBytes)
         chunkFileInfo.flush()
         chunkFileInfo.close()
+
+        if chunkOrder % 79 == 0:
+            print str(chunkOrder) + "."
 
         chunkOrder += 1
         chunkBytes = fileInfo.read(idealChunkSize)

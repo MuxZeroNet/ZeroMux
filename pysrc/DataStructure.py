@@ -1,26 +1,8 @@
 #!/usr/bin/env python2
 # coding: utf-8
 
-import sys
-import os
-
-import argparse
-
-import BaseHTTPServer
-import webbrowser
-import urllib
-import io
-
-import Tkinter as tk
-import tkFileDialog
-
-import re
 import json
 import random
-
-import json
-import hashlib
-import codecs
 
 
 def GenerateNewId(dataType):

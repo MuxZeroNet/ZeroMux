@@ -1,6 +1,6 @@
 function dummyQueries()
 {
-    return "_r=_0.1.2_" + Math.random();
+    return "_r=_0.1.3_" + Math.random();
 }
 
 function dealWithFailure(reason)
@@ -14,7 +14,7 @@ function getToken(callback, failure)
     function(jsonResp)
     {
         callback(encodeURIComponent(jsonResp["token"]));
-        
+
     }, failure);
 }
 
@@ -44,7 +44,7 @@ function peakAttachedToken(element)
         var token = element.getAttribute("data-token");
         return token;
     }
-    
+
     return "";
 }
 
@@ -92,8 +92,8 @@ function chooseFile(toVirtualDir, token, callback, failure)
     var url = "/chooseFile?token=" + token +
         "&path=" + encodeURIComponent(toVirtualDir) +
         "&" + dummyQueries();
-    
-    
+
+
     var onFailed = function(why, retry=10)
     {
         if(retry <= 0)
@@ -101,15 +101,15 @@ function chooseFile(toVirtualDir, token, callback, failure)
             failure("Time out!");
             return;
         }
-        
+
         console.error(why);
-        
+
         if(isDict(why) && why.hasOwnProperty("status") && why["status"] == false)
         {
             failure(why["message"]);
             return;
         }
-        
+
         setTimeout(function()
         {
             showSelectedFile(function(filePath)
@@ -120,11 +120,11 @@ function chooseFile(toVirtualDir, token, callback, failure)
             {
                 onFailed(retry - 1);
             });
-            
+
         }, 500);
     };
-    
-    
+
+
     readStatusResp(url, callback, function(e){ onFailed(e); });
 }
 
@@ -133,25 +133,25 @@ function confirmUpload(rename, token, callback, failure)
     var url = "/confirmUpload?token=" + token +
         "&rename=" + encodeURIComponent(rename) +
         "&" + dummyQueries();
-    
+
     var onFailed = function(why, retry=60)
     {
         console.log(retry);
-        
+
         if(retry <= 0)
         {
             failure("Time out.");
             return;
         }
-        
+
         console.error(why);
-        
+
         if(isDict(why) && why.hasOwnProperty("status") && why["status"] == false)
         {
             failure(why["message"]);
             return;
         }
-        
+
         var reportUrl = "/showUploaded?" + dummyQueries();
         setTimeout(function()
         {
@@ -166,20 +166,20 @@ function confirmUpload(rename, token, callback, failure)
                 {
                     onFailed(retry - 10);
                 }
-                
-            }, 
+
+            },
             function()
             {
                 onFailed(retry - 1);
             });
-            
+
         }, 1000);
     };
-    
+
     readStatusResp(url, function(jsonResp)
     {
         callback(jsonResp["message"]);
-    }, 
+    },
     function(e)
     {
         onFailed(e);
@@ -189,7 +189,7 @@ function confirmUpload(rename, token, callback, failure)
 function showSelectedFile(callback, failure)
 {
     var url = "/showSelected?" + dummyQueries();
-    
+
     readStatusResp(url, function(jsonResp)
     {
         if(jsonResp["detail"] != "selected")
@@ -209,7 +209,7 @@ function newFolder(inDir, name, token, callback, failure)
         "&in=" + encodeURIComponent(inDir) +
         "&name=" + encodeURIComponent(name) +
         "&" + dummyQueries();
-    
+
     readStatusResp(url, function(jsonResp)
     {
         callback(jsonResp["message"]);
@@ -219,31 +219,31 @@ function newFolder(inDir, name, token, callback, failure)
 function rename(itemType, path, newName, token, callback, failure)
 {
     var url = "/rename?token=" + token +
-        "&type=" + encodeURIComponent(itemType) + 
+        "&type=" + encodeURIComponent(itemType) +
         "&path=" + encodeURIComponent(path) +
         "&name=" + encodeURIComponent(newName) +
         "&" + dummyQueries();
-    
+
     readStatusResp(url, callback, failure);
 }
 
 function move(itemType, path, to, token, callback, failure)
 {
     var url = "/move?token=" + token +
-        "&type=" + encodeURIComponent(itemType) + 
+        "&type=" + encodeURIComponent(itemType) +
         "&path=" + encodeURIComponent(path) +
         "&to=" + encodeURIComponent(to) +
         "&" + dummyQueries();
-    
+
     readStatusResp(url, callback, failure);
 }
 
 function ajaxDelete(path, token, callback, failure)
 {
     var url = "/delete?token=" + token +
-        "&path=" + encodeURIComponent(path) + 
+        "&path=" + encodeURIComponent(path) +
         "&" +dummyQueries();
-    
+
     readStatusResp(url, callback, failure);
 }
 
@@ -252,7 +252,7 @@ function showFolder(fileId, token, callback, failure)
     var url = "/openFolder?token=" + token +
         "&file=" + encodeURIComponent(fileId) +
         "&" + dummyQueries();
-    
+
     readStatusResp(url, callback, failure);
 }
 
@@ -260,6 +260,6 @@ function showFilesFolder(token, callback, failure)
 {
     var url = "/findAllFiles?token=" + token +
         "&" + dummyQueries();
-    
+
     readStatusResp(url, callback, failure);
 }
