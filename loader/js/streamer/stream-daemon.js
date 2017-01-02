@@ -7,7 +7,7 @@ function initDaemonFns()
     // input
     var dataInput = {
         getStopSignal: nop,
-        getLatestAvailableIndex: nop,
+        getLoadedRange: nop,
         getBufferReference: nop,
     };
 
@@ -27,7 +27,8 @@ function initDaemon(daemonFns)
     daemon["_daemonLoadedIndex"] = -1;
     daemon["_daemonStopped"] = true;
     daemon["_daemonException"] = "not started";
-    deamon["_daemonWants"] = 0;
+    daemon["_rangeStart"] = 0;
+    daemon["_allowSeeking"] = true;
 
     daemon.getDaemonLoadedIndex = function()
     {
@@ -56,34 +57,43 @@ function initDaemon(daemonFns)
         daemon["_daemonException"] = val;
     };
 
-    daemon.getDaemonAdvice = function()
+    daemon.getRangeStart = function()
     {
-        return daemon["_daemonWants"];
+        return daemon["_rangeStart"];
     };
-    daemon.setDaemonAdvice = function(val)
+    daemon.setRangeStart = function(val)
     {
         if(val < 0)
         {
-            throw "set advice: Invalid argument";
+            throw "set range start: Invalid argument";
         }
 
-        daemon["_daemonWants"] = val;
+        daemon["_rangeStart"] = val;
     };
+
+    daemon.allowsSeeking = function()
+    {
+        return daemon["_allowSeeking"];
+    };
+    daemon.setAllowSeeking = function(val)
+    {
+        daemon["_allowSeeking"] = val;
+    };
+
 
     daemon.peak = function(index)
     {
-        return daemonPeak(daemon, index);
+        return daemonPeak(daemon, daemonFns, index);
     };
-
 
     daemon.waitAndLoadNext = function()
     {
-        waitAndLoadSegment(
-            daemon, // self
-            daemon.getDaemonLoadedIndex() + 1,
-            daemonFns,
-            50
-        );
+        daemon.readFrom(daemon.getDaemonLoadedIndex() + 1);
+    };
+
+    daemon.readFrom = function(index)
+    {
+        waitAndLoadSegment(daemon, index, daemonFns);
     };
 
     return daemon;
@@ -124,10 +134,10 @@ function waitAndLoadSegment(selectors, toIndex, fns, retry=50)
     // recursion base case 2
     else if(toIndex > fns.dataInput.getBufferReference().length - 1)
     {
-        console.info("Daemon: We are done. Reached end of stream.");
+        console.info("Daemon: Reached end of stream. Stop Iteration.");
 
         // tell main thread
-        _stopDaemon(selectors, fns.callbacks.onStopped, "graceful");
+        _stopDaemon(selectors, fns.callbacks.onStopped, "graceful: EOF");
 
         return;
     }
@@ -145,38 +155,66 @@ function waitAndLoadSegment(selectors, toIndex, fns, retry=50)
 
 
     // `toIndex` domain check
-    var indexLoaded = selectors.getDaemonLoadedIndex();
-
-    // we have done assigned task
-    if(indexLoaded >= toIndex)
+    if(toIndex < 0)
     {
-        console.warn("Daemon has already loaded assigned index " + toIndex + ". " +
-                     "Daemon has loaded all the way to index " + indexLoaded + ". Exit...");
-
-        // tell main thread daemon was aborted
-        _stopDaemon(selectors, fns.callbacks.onStopped, "exception: toIndex");
-
+        _stopDaemon(selectors, fns.callbacks.onStopped, "exception: toIndex < 0");
         return;
     }
 
+    var rangeStart = selectors.getRangeStart();
+    var rangeEnd = selectors.getDaemonLoadedIndex();
 
-    if(indexLoaded + 1 != toIndex)
+    // we have already loaded that chunk
+    if(rangeStart <= toIndex && toIndex <= rangeEnd)
     {
-        console.error("Daemon: we cannot load more than 1 chunk at a time. " +
-                     "You assigned index " + toIndex + ". Daemon is still at index " + indexLoaded);
+        if(!selectors.allowsSeeking())
+        {
+            console.warn("Chunk " + toIndex + " cannot be loaded twice. " +
+                "Daemon has loaded chunks [" + rangeStart + ", " + rangeEnd + "].");
 
-        // tell main thread daemon was aborted
-        _stopDaemon(selectors, fns.callbacks.onStopped, "exception: toIndex");
+            // tell main thread daemon was aborted
+            _stopDaemon(selectors, fns.callbacks.onStopped, "exception: toIndex");
 
-        return;
+            return;
+        }
+        else
+        {
+            console.log("Returning loaded chunk " + toIndex);
+        }
     }
 
+    // else: that chunk hasn't been loaded
+    // and it is too far
+    else if(toIndex - rangeEnd > 1 || toIndex < rangeStart)
+    {
+        if(!selectors.allowsSeeking())
+        {
+            console.error("Daemon: That chunk is too far. " +
+                "You want index " + toIndex + ". " +
+                "Daemon has data in [" + rangeStart + ", " + rangeEnd + "].");
 
-    // now we have to load things
+            // tell main thread daemon was aborted
+            _stopDaemon(selectors, fns.callbacks.onStopped, "exception: toIndex");
 
-    var laIndex = fns.dataInput.getLatestAvailableIndex();
+            return;
+        }
+        else
+        {
+            console.log("Daemon: Seeking to index " + toIndex + ". [" + rangeStart + ", " + rangeEnd + "]");
 
-    if(laIndex < toIndex)
+            selectors.setDaemonLoadedIndex(toIndex - 1); // move position pointer
+            selectors.setRangeStart(toIndex); // advise downloader
+        }
+    }
+
+    // move pointer and load chunk `toIndex`
+
+    var dlRange = fns.dataInput.getLoadedRange();
+    var loadedFrom = dlRange[0];
+    var loadedTo = dlRange[1];
+
+    // if toIndex is outside loaded range
+    if(loadedTo < loadedFrom || toIndex < loadedFrom || toIndex > loadedTo)
     {
         // We are too fast, sleep.
         setTimeout(function()
@@ -190,23 +228,24 @@ function waitAndLoadSegment(selectors, toIndex, fns, retry=50)
 
     console.log("Daemon: loading index " + toIndex);
 
-    selectors.setDaemonLoadedIndex(toIndex);
+    selectors.setDaemonLoadedIndex(toIndex); // move pointer
 
     fns.callbacks.onDataOutput(toIndex, fns.dataInput.getBufferReference()[toIndex]);
 
 }
 
-function daemonPeak(self, index)
+function daemonPeak(self, fns, index)
 {
     if(self.getDaemonStopped())
     {
         return null;
     }
 
-    if(self.getLatestAvailableIndex() < index)
+    var dlRange = fns.dataInput.getLoadedRange();
+    if(dlRange[1] < dlRange[0] || index < dlRange[0] || index > dlRange[1])
     {
         return null;
     }
 
-    return self.getBufferReference()[index];
+    return fns.dataInput.getBufferReference()[index];
 }

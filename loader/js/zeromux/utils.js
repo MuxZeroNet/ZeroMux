@@ -15,15 +15,15 @@ function assert(condition, errorMessage)
 function getEmptySlot(array, suggestion=0)
 {
     //prefer empty slots at the beginning
-    
+
     var startIndex = Math.max(
         Math.min(parseInt(
             array.length - Math.random()*array.length*2.2
         ), array.length),
     0);
-    
+
     startIndex = startIndex + suggestion;
-    
+
     for(var counter = 0; counter < array.length; counter++)
     {
         var index = (counter + startIndex) % array.length;
@@ -32,7 +32,7 @@ function getEmptySlot(array, suggestion=0)
             return index;
         }
     }
-    
+
     return -1;
 }
 
@@ -40,42 +40,43 @@ function getEmptySlot(array, suggestion=0)
 function simplerWorker(jsPath, callback)
 {
     // bypassing ZeroNet's sandboxed iframe error
-    
+
     success = function(xmlHttp)
     {
         var arrayBuffer = xmlHttp.response;
         var blob = new Blob([arrayBuffer]);
         var blobUrl = window.URL.createObjectURL(blob);
-        
+
         var myWorker = new Worker(blobUrl);
-        
+
         callback(myWorker);
     };
-    
+
     failure = function(xmlHttp, reason)
     {
         console.error("Worker failed to start: cannot get js");
     };
-    
-    
+
+
     requestBinary(jsPath, "arraybuffer", success, failure);
 }
 
 
-function lastInFirstSequence(array)
+function lastInFirstSequence(array, fromIndex=0)
 {
-    for(var i = 0; i < array.length - 1; i++)
+    if(fromIndex > array.length - 1)
+    {
+        return -1;
+    }
+
+    for(var i = fromIndex; i < array.length; i++)
     {
         if(array[i] == null)
         {
             return i - 1;
         }
-        else if(array[i+1] == null)
-        {
-            return i;
-        }
     }
-    
+
     return array.length - 1;
 }
 
@@ -96,7 +97,7 @@ function getScriptFolder(myName)
             break;
         }
     }
-    
+
     return scriptFolder;
 }
 
@@ -110,7 +111,7 @@ function getAbsoluteUrls(jsUrls)
         var result = a.href;
         return result;
     });
-    
+
     return absJsUrls;
 }
 
@@ -122,34 +123,34 @@ function nop(eventArgs)
 function requestAsync(url, minetype, responseType, callback, failure)
 {
     var xmlHttp = new XMLHttpRequest();
-    
+
     xmlHttp.onload = function()
-    { 
+    {
         callback(xmlHttp);
     }
-    
+
     xmlHttp.onerror = function(reason)
     {
         failure(xmlHttp, reason);
     }
-    
+
     xmlHttp.onabort = xmlHttp.onerror;
     xmlHttp.ontimeout = xmlHttp.onerror;
-    
+
     xmlHttp.open("GET", url, true);
-    
+
     xmlHttp.timeout = 20000;
-    
+
     if (minetype != null)
     {
         xmlHttp.overrideMimeType(minetype);
     }
-    
+
     if (responseType != null)
     {
         xmlHttp.responseType = responseType;
     }
-    
+
     try
     {
         xmlHttp.send(null);
@@ -158,7 +159,7 @@ function requestAsync(url, minetype, responseType, callback, failure)
     {
         failure(xmlHttp, exception);
     }
-    
+
 }
 
 function requestText(url, minetype, callback, failure)

@@ -52,7 +52,12 @@ import codecs
 import datetime
 
 
-sys.path.insert(0, "pysrc")
+def GetRootPath():
+    p = os.path.normpath(os.path.dirname(os.path.abspath(__file__)) + "/")
+    return p.decode(sys.getfilesystemencoding())
+
+
+sys.path.insert(0, GetRootPath() + "/pysrc")
 from FileChunks import *
 from DataStructure import *
 from AbstractRW import *
@@ -539,9 +544,6 @@ class Backend(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
 
 
-def GetRootPath():
-    p = os.path.normpath(os.path.dirname(os.path.abspath(__file__)) + "/")
-    return p.decode(sys.getfilesystemencoding())
 
 def GetLoaderFolder():
     return GetRootPath() + "/loader/"
