@@ -80,20 +80,39 @@ function initDaemon(daemonFns)
         daemon["_allowSeeking"] = val;
     };
 
-
-    daemon.peak = function(index)
+    daemon._redirectOutput = function(callback)
     {
-        return daemonPeak(daemon, daemonFns, index);
+        if(callback == null)
+        {
+            return daemonFns;
+        }
+        else
+        {
+            var newFns = {};
+            newFns["dataInput"] = daemonFns.dataInput;
+            newFns["callbacks"] = {
+                onDataOutput: callback,
+                onStopped: daemonFns.callbacks.onStopped
+            };
+            return newFns;
+        }
+    }
+
+    daemon.peak = function(index, callback=null)
+    {
+        var newFns = daemon._redirectOutput(callback);
+        return daemonPeak(daemon, newFns, index);
     };
 
-    daemon.waitAndLoadNext = function()
+    daemon.waitAndLoadNext = function(callback=null)
     {
-        daemon.readFrom(daemon.getDaemonLoadedIndex() + 1);
+        daemon.readFrom(daemon.getDaemonLoadedIndex() + 1, callback);
     };
 
-    daemon.readFrom = function(index)
+    daemon.readFrom = function(index, callback=null)
     {
-        waitAndLoadSegment(daemon, index, daemonFns);
+        var newFns = daemon._redirectOutput(callback);
+        waitAndLoadSegment(daemon, index, newFns);
     };
 
     return daemon;
@@ -220,7 +239,7 @@ function waitAndLoadSegment(selectors, toIndex, fns, retry=50)
         setTimeout(function()
         {
             waitAndLoadSegment(selectors, toIndex, fns, retry - 1);
-        }, 500 + 1000*(retry/50));
+        }, 500 + 500*(retry/50));
 
         return;
     }
