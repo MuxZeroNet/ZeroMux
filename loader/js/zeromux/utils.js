@@ -64,7 +64,7 @@ function simplerWorker(jsPath, callback)
 
 function lastInFirstSequence(array, fromIndex=0)
 {
-    if(fromIndex > array.length - 1)
+    if(fromIndex > array.length - 1 || fromIndex < 0)
     {
         return -1;
     }
@@ -127,12 +127,12 @@ function requestAsync(url, minetype, responseType, callback, failure)
     xmlHttp.onload = function()
     {
         callback(xmlHttp);
-    }
+    };
 
     xmlHttp.onerror = function(reason)
     {
         failure(xmlHttp, reason);
-    }
+    };
 
     xmlHttp.onabort = xmlHttp.onerror;
     xmlHttp.ontimeout = xmlHttp.onerror;

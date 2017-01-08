@@ -98,10 +98,9 @@ function initDaemon(daemonFns)
         }
     }
 
-    daemon.peak = function(index, callback=null)
+    daemon.peak = function(index) // sync
     {
-        var newFns = daemon._redirectOutput(callback);
-        return daemonPeak(daemon, newFns, index);
+        return daemonPeak(daemon, daemonFns, index);
     };
 
     daemon.waitAndLoadNext = function(callback=null)
@@ -131,7 +130,7 @@ function _stopDaemon(selectors, onStopped, reason)
 
 // load next chunk and call back, when next chunk is available
 // if not available, wait until it is available, and then call back
-function waitAndLoadSegment(selectors, toIndex, fns, retry=50)
+function waitAndLoadSegment(selectors, toIndex, fns, retry=1000)
 {
     // daemon starts
     selectors.setDaemonStopped(false);
@@ -140,12 +139,9 @@ function waitAndLoadSegment(selectors, toIndex, fns, retry=50)
     // recursion base case 1
     if(retry <= 0)
     {
-        console.warn("Daemon: Bad network environment! Waited for too long.");
+        console.warn("Daemon: Bad network environment! Read timed out.");
 
-        setTimeout(function()
-        {
-            waitAndLoadSegment(selectors, toIndex, fns, 50);
-        }, 1000);
+        fns.onDataOutput(toIndex, null); // timed out
 
         return;
     }
@@ -239,7 +235,7 @@ function waitAndLoadSegment(selectors, toIndex, fns, retry=50)
         setTimeout(function()
         {
             waitAndLoadSegment(selectors, toIndex, fns, retry - 1);
-        }, 500 + 500*(retry/50));
+        }, 500 + 500*(retry/500));
 
         return;
     }
