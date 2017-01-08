@@ -23,7 +23,7 @@ You can make ZeroMux project better by simply:
 - Talking to me [privately](http://127.0.0.1:43110/1CiDoBP8RiWziqiBGEd8tQMy66A6fmnw2V/big/docs/about/) about your experience.
 
 There are a lot of features that are not easy to use, not finished and not implemented. I will be very pleased if you can:
-- Think of ways to improve the [abstraction layer](https://github.com/MuxZeroNet/ZeroMux/loader/js/streamer) between **chunks** and **bytes**. You can [file an issue](https://github.com/MuxZeroNet/ZeroMux/issues) or [open a pull request](https://github.com/MuxZeroNet/ZeroMux/).
+- Think of ways to improve the [abstraction layer](https://github.com/MuxZeroNet/ZeroMux/tree/master/loader/js/streamer) between **chunks** and **bytes**. You can [file an issue](https://github.com/MuxZeroNet/ZeroMux/issues) or [open a pull request](https://github.com/MuxZeroNet/ZeroMux/).
 - Think of ways to improve the [Python backend](wizard.py).
 - Make a logo for ZeroMux.
 
@@ -31,7 +31,7 @@ You can also help the ZeroNet community by seeding the files you like from some 
 
 You can help us test [I2P support](https://github.com/HelloZeroNet/ZeroNet/issues/45), so that we can have even more seeders in the future.
 
-You can help us persuade Chromium developers that [blocking `blob:null/` in an iframe sandbox](https://bugs.chromium.org/p/chromium/issues/detail?id=379206) should be considered as a bug, not a feature. This long standing bug prevents MSE APIs from working properly in an iframe sandbox.
+There are some browser bugs which ZeroNet developers are unable to fix. You can help us persuade Chromium developers that [blocking `blob:null/` in an iframe sandbox](https://bugs.chromium.org/p/chromium/issues/detail?id=379206) should be considered as a bug, not a feature. This long standing bug prevents MSE APIs from working properly in an iframe sandbox.
 
 If Chromium developers really love Chromium, they should have fixed this long standing bug regardless no one has filed a separate issue.
 
