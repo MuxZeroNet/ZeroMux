@@ -1,35 +1,10 @@
 #!/usr/bin/env python2
 # coding: utf-8
 
+print "ZeroMux Bundle" # Hey, there! You need Python 2.7
+
 import sys
 import os
-
-if sys.version_info[0] != 2:
-    file_name = __file__.replace("\\", "/").split("/")[-1]
-
-    print("""
-    You may have used or downloaded the wrong version of Python.
-
-
-    You need:  [ Python 2.7 ]
-
-    You are using: Python %s.%s.%s
-
-
-    Press <Enter>, and I will try fixing it for you.
-
-    If it doesn't work, try checking what Python you just downloaded.
-
-    """ % sys.version_info[0:3])
-    _ = input("<Press Enter>")
-    if os.name == "nt":
-        os.system("py -2 \"" + file_name + "\"")
-    else:
-        os.system("python2 \"" + file_name + "\"")
-
-    exit()
-
-print "ZeroMux Bundle"
 
 import argparse
 
@@ -68,7 +43,7 @@ class Backend(BaseHTTPServer.BaseHTTPRequestHandler):
     selected_file = ""
     selected_vpath = ""
     token_list = set()
-    uploaded_files = {}
+    uploaded_files = dict()
 
     def do_HEAD(self):
         self.send_response(200)
@@ -540,6 +515,8 @@ class Backend(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def _SendUsefulHeaders(self, content_type):
         self.send_header("Content-type", content_type)
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Content-Security-Policy", "frame-ancestors 'none';")
         self.send_header("Server", "ZeroMux Configuration Wizard")
         self.end_headers()
 

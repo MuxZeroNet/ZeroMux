@@ -4,7 +4,9 @@ ZeroMux is a file sharing toolkit and site builder for [ZeroNet](https://zeronet
 ## Getting Started
 1. Download this repo, or if you prefer, get the pack at [ZeroMux Blog on ZeroNet](http://127.0.0.1:43110/1CiDoBP8RiWziqiBGEd8tQMy66A6fmnw2V/big/bundle/)
 2. Unpack and run `wizard.py`
-3. After you made changes to your file list, put the `loader` folder onto your site.
+3. After you made changes to your file list, put the `loader` folder onto your site, or if you prefer, simply make a symbolic link:
+
+    `ZeroMux/loader -> data/1YourSite/loader`
 4. Sign and publish. Tell your friends to come visit your site.
 5. For instructions of how to configure your ZeroNet site, refer to [ZeroMux Docs on ZeroNet](http://127.0.0.1:43110/1CiDoBP8RiWziqiBGEd8tQMy66A6fmnw2V/big/docs/gentle-intro/) and read more about it.
 
@@ -21,7 +23,7 @@ You can make ZeroMux project better by simply:
 - Talking to me [privately](http://127.0.0.1:43110/1CiDoBP8RiWziqiBGEd8tQMy66A6fmnw2V/big/docs/about/) about your experience.
 
 There are a lot of features that are not easy to use, not finished and not implemented. I will be very pleased if you can:
-- Draw a diagram of how to implement an abstraction layer between **chunks** and **bytes**, so that a stream interface can be made. You can [file an issue](https://github.com/MuxZeroNet/ZeroMux/issues).
+- Think of ways to improve the [abstraction layer](https://github.com/MuxZeroNet/ZeroMux/loader/js/streamer) between **chunks** and **bytes**. You can [file an issue](https://github.com/MuxZeroNet/ZeroMux/issues) or [open a pull request](https://github.com/MuxZeroNet/ZeroMux/).
 - Think of ways to improve the [Python backend](wizard.py).
 - Make a logo for ZeroMux.
 
@@ -29,8 +31,18 @@ You can also help the ZeroNet community by seeding the files you like from some 
 
 You can help us test [I2P support](https://github.com/HelloZeroNet/ZeroNet/issues/45), so that we can have even more seeders in the future.
 
-You can help us persuade Chromium developers that [blocking `blob:null/` in an iframe sandbox](https://github.com/HelloZeroNet/ZeroNet/issues/707) should be considered as a bug, not a feature.
+You can help us persuade Chromium developers that [blocking `blob:null/` in an iframe sandbox](https://bugs.chromium.org/p/chromium/issues/detail?id=379206) should be considered as a bug, not a feature. This long standing bug prevents MSE APIs from working properly in an iframe sandbox.
 
-You can donate to [ZeroNet](https://github.com/HelloZeroNet/ZeroNet) and help keep both projects alive.
+If Chromium developers really love Chromium, they should have fixed this long standing bug regardless no one has filed a separate issue.
 
-![Abstract Stream](stream.svg)
+> \*\*\*@chromium.org
+>
+> [Another bug reporter], could you file a new bug and attach a test page that, when [...]
+>
+> \*\*\*@chromium.org
+>
+> \#10 and \#11 - could you file new bugs?
+
+Come on ...
+
+You can also donate to [ZeroNet](https://github.com/HelloZeroNet/ZeroNet) and help keep both projects alive.
