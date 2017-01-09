@@ -64,7 +64,11 @@ function simplerWorker(jsPath, callback)
 
 function lastInFirstSequence(array, fromIndex=0)
 {
-    if(fromIndex > array.length - 1 || fromIndex < 0)
+    if(fromIndex < 0)
+    {
+        throw "Invalid argument";
+    }
+    if(fromIndex > array.length - 1)
     {
         return -1;
     }

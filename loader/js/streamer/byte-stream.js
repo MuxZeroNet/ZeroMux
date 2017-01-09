@@ -29,6 +29,11 @@ function newByteStream(jsonPath, sortedParts, events)
         s.readFrom("current", callback);
     };
 
+    s.peakAt = function(offset)
+    {
+        return _streamPeak(s, offset);
+    };
+
     // read lock
     s["_busyReading"] = false;
     s.markBusy = function()
@@ -79,6 +84,8 @@ function _makeOffsetList(sortedParts)
         offsetList.push(sizeSum);
         sizeSum += sortedParts[i].size;
     }
+
+    offsetList.push(sizeSum);
 
     return offsetList;
 }
@@ -230,6 +237,12 @@ function _streamRead(self, offset, callback)
     console.log("Read from offset " + offset);
 
     var chunkIndex = _getIndex(self.offsetList, offset);
+    if(chunkIndex == self.offsetList.length - 1)
+    {
+        // EOF
+        callback(offset, new ArrayBuffer());
+    }
+
     var difference = offset - self.offsetList[chunkIndex];
     
     assert(difference >= 0, "diff < 0");
@@ -284,6 +297,46 @@ function _streamRead(self, offset, callback)
     
 }
 
+function _streamPeak(self, offset)
+{
+    if(self.position < offset)
+    {
+        return null;
+    }
+
+    // I decided not to call preload()
+    // so peak(...) does not have side effects
+
+    console.log("Peak at offset " + offset);
+
+    var chunkIndex = _getIndex(self.offsetList, offset);
+    if(chunkIndex > self.offsetList.length - 1) // EOF
+    {
+        return new ArrayBuffer();
+    }
+
+    var difference = offset - self.offsetList[chunkIndex];
+    var chunkBytes = self.daemon.peak(chunkIndex);
+
+    assert(difference >= 0, "bug found");
+
+    if(chunkBytes == null)
+    {
+        return null;
+    }
+    else
+    {
+        if(difference == 0)
+        {
+            return chunkBytes;
+        }
+        else
+        {
+            return chunkBytes.slice(difference);
+        }
+    }
+}
+
 function _startDl(self)
 {
     if(!self.dlStarted)
@@ -300,9 +353,9 @@ function _getIndex(offsetList, offset)
         throw "offset < lower bound";
     }
 
-    if(offset >= offsetList[offsetList.length - 1])
+    if(offset >= offsetList[offsetList.length - 1]) // offset is outside the file
     {
-        return offsetList.length - 1;
+        return offsetList.length - 1; // the last chunk is "fake"
     }
     else
     {
