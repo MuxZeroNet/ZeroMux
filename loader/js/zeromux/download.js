@@ -14,7 +14,7 @@ function initEventObj()
         onblobbuilding: nop,
         onfinish: nop,
         onbuilderror: nop,
-        
+
         otherParams: {},
     };
     return events;
@@ -26,20 +26,20 @@ function downloadBigFile(jsonPath, events)
     {
         handleJsonData(xmlHttp, events)
     };
-    
+
     var failure = function(xmlHttp, reason)
     {
         events.onjsonerror(null);
         requestFailed(xmlHttp, reason);
     };
-    
+
     requestText(jsonPath, "application/json", callback, failure)
 }
 
 
-    
+
 function handleJsonData(xmlHttp, events)
-{   
+{
     var a = null;
     try
     {
@@ -49,17 +49,17 @@ function handleJsonData(xmlHttp, events)
     {
         console.log(e);
         events.onjsonerror(null);
-        
+
         return;
     }
-    
+
     var bigFileInfo = a[0], filePartInfo = a[1];
     var infoArgs = {"bigFileInfo": bigFileInfo, "filePartInfo": filePartInfo};
-    
+
     events.onjsonload(infoArgs);
-    
+
     var fileParts = Array(filePartInfo.length);
-    
+
     //var index = getEmptySlot(fileParts);
     var index = 0;
     secureAdd(infoArgs, index, fileParts, events, DefaultMaxRetry);
@@ -79,30 +79,30 @@ function secureAdd(infoArgs, index, array, events, retry)
     {
         console.error("Download piece " + index + " failed.");
         events.onpieceerror(index);
-        
+
         return;
     }
-    
+
     if (getEmptySlot(array) == -1)
     {
         console.log("Finished. Now merging files");
         events.onblobbuilding(null);
-        
+
         buildBlob(infoArgs.bigFileInfo, array, events);
         return;
     }
-    
+
     if(array[index] != null)
     {
         throw "Redownloading [" + index + "] ???";
     }
-    
+
     var pieceInfo = infoArgs.filePartInfo[index];
-    
+
     console.log("Downloading piece " + index);
     events.onadding(index);
-    
-    requestBinary(pieceInfo["path"]+"?_r="+Math.random(), "arraybuffer", 
+
+    requestBinary(pieceInfo["path"]+"?_r="+Math.random(), "arraybuffer",
     function(xmlHttp)
     {
         handlePiece(infoArgs, index, array, events, retry, xmlHttp.response);
@@ -113,43 +113,43 @@ function secureAdd(infoArgs, index, array, events, retry)
         if(reason.type == "abort")
         {
             console.log("Download: Aborted");
-            
+
             newRetry = 0;
         }
         else if(reason.type == "timeout")
         {
             console.log("Download: Timeout");
-            
+
             newRetry -= 0.5;
         }
         else
         {
             console.log("Download: Error");
-            
+
             newRetry -= 1;
         }
-        
+
         setTimeout(function()
         {
             secureAdd(infoArgs, index, array, events, newRetry);
         }, 2000);
-        
+
     });
 }
 
 function handlePiece(infoArgs, index, array, events, retry, pieceBytes)
 {
     var pieceInfo = infoArgs.filePartInfo[index];
-    
+
     var valid = checkPiece(pieceInfo, pieceBytes);
-    
+
     if(valid)
     {
         console.log("Piece looks valid, saving...");
         array[index] = pieceBytes;
-        
+
         events.onadded({"index": index, "pieceBytes": pieceBytes});
-        
+
         //Next piece
         var suggestion = 0;
         if(events["suggest"] != null)
@@ -173,35 +173,36 @@ function checkPiece(pieceInfo, pieceBytes)
 {
     var correctSize = pieceInfo["size"];
     var actualSize = pieceBytes.byteLength;
-    
-    console.log("correct: " + correctSize + " bytes");
-    console.log("received " + actualSize + " bytes");
-    
+
     if (correctSize != actualSize)
     {
+        console.log("correct: " + correctSize + " bytes");
+        console.log("received " + actualSize + " bytes");
+
         return false;
     }
-    
+
     var algorithm = convert(pieceInfo["hashingAlgorithm"]);
     var correctHash = pieceInfo["hash"];
-    
+
     var startTime = new Date().getTime();
 
-    
+
     var actualHash = algorithm(pieceBytes);
-    
+
     var endTime = new Date().getTime();
-    
+
     console.log(endTime - startTime);
-    
-    console.log("Correct: " + correctHash);
-    console.log("Actual:  " + actualHash);
-    
+
+
     if(correctHash != actualHash)
     {
+        console.log("Correct: " + correctHash);
+        console.log("Actual:  " + actualHash);
+
         return false;
     }
-    
+
     return true;
 }
 
@@ -211,10 +212,10 @@ function convert(algorithmString)
     {
         case "sha512":
             return asmCrypto.SHA512.hex;
-        
+
         case "sha256":
             return asmCrypto.SHA256.hex;
-        
+
         default:
             throw "Unsupported hashing algorithm.";
     }
@@ -227,40 +228,40 @@ function buildBlob(bigFileInfo, array, events)
     {
         blobType = events.otherParams["blobType"];
     }
-    
+
     var blob = new Blob(array, {type: blobType});
-    
+
     console.log("using blob type "+blobType);
-    
+
     var correctSize = bigFileInfo["size"];
     var actualSize = blob.size;
-    
+
     if (correctSize != actualSize)
     {
         console.error("incorrect big file size");
         events.onbuilderror(null);
-        
+
         return;
     }
-    
+
     var reader = new FileReader();
     reader.addEventListener("loadend", function()
     {
         // reader.result contains the contents of blob as a typed array
-        
+
         // async hash check
         //var hashWorker = new Worker("js/async-hash.js");
-        
+
         var scriptFolder = getScriptFolder("download.js");
-        
+
         var asmCryptoPath = scriptFolder.concat("asmcrypto.js").join("/");
         var asyncHashPath = scriptFolder.concat("async-hash.js").join("/");
-        
+
         requestBinary(asmCryptoPath, "arraybuffer", function(xmlHttp)
         {
             var library = new Blob([xmlHttp.response]);
-            
-            
+
+
             checkHashAsync(asyncHashPath, bigFileInfo, reader.result, library, function(e)
             {
                 var correctHash = bigFileInfo["hash"];
@@ -290,7 +291,7 @@ function buildBlob(bigFileInfo, array, events)
         });
     });
     reader.readAsArrayBuffer(blob);
-    
+
 }
 
 

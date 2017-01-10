@@ -1,11 +1,11 @@
 function GetTrackId(sampleInfo)
 {
-    return sampleInfo["codecInfo"]["trackId"];
+    return sampleInfo.trackId;
 }
 
 function IsSampleSync(number, sampleInfo)
 {
-    var keyframeNumberList = sampleInfo["codecInfo"]["keyframeNumberList"];
+    var keyframeNumberList = sampleInfo.keyframeNumberList;
     if (keyframeNumberList == null)
     {
         return true;
@@ -52,16 +52,14 @@ function FindIndexInCountsM(array, countIndex, number, cachedIndex=0, cachedSum=
 
 function GetMaxChunkNumber(sampleInfo)
 {
-    var chunkOffsetList = sampleInfo["offsetInfo"]["chunkOffsetList"];
-
-    var maxChunkNumber = chunkOffsetList.length;
+    var maxChunkNumber = sampleInfo.chunkOffsetList.length;
     return maxChunkNumber;
 }
 
 
 function GetChunkOffset(chunkNumber, sampleInfo)
 {
-    var chunkOffsetList = sampleInfo["offsetInfo"]["chunkOffsetList"];
+    var chunkOffsetList = sampleInfo.chunkOffsetList;
     return chunkOffsetList[chunkNumber - 1];
 }
 
@@ -69,7 +67,7 @@ function GetChunkOffset(chunkNumber, sampleInfo)
 
 function GetChunkInfo(chunkNumber, sampleInfo, startIndex=0)
 {
-    var sampleCountEntries = sampleInfo["offsetInfo"]["sampleCountEntries"];
+    var sampleCountEntries = sampleInfo.sampleCountEntries;
 
     var maxChunkNumber = GetMaxChunkNumber(sampleInfo)
     if (chunkNumber > maxChunkNumber)
@@ -161,7 +159,7 @@ function GetChunkLength(chunkNumber, sampleInfo, smpCount=null, firstSampleNum=n
 function GetSampleSize(number, sampleInfo)
 {
     //constantSampleSize, sampleSizeList = sampleInfo["offsetInfo"]["sampleSizeInfo"]
-    var stsz = sampleInfo["offsetInfo"]["sampleSizeInfo"];
+    var stsz = sampleInfo.sampleSizeInfo;
     var constantSampleSize = stsz[0];
     var sampleSizeList = stsz[1];
 
@@ -173,7 +171,7 @@ function GetSampleSize(number, sampleInfo)
 
 function GetMaxSampleNumber(sampleInfo)
 {
-    return sampleInfo["offsetInfo"]["sampleSizeInfo"][1].length;
+    return sampleInfo.sampleSizeInfo[1].length;
 }
 
 // slow functions
@@ -184,9 +182,8 @@ function GetSampleOffset(chunkNumber, relativeSampleNumber, sampleInfo)
 
 function GetSampleTimestamp(number, sampleInfo)
 {
-    var timestampInfo = sampleInfo["timestampInfo"];
-    var dtDeltaEntries = timestampInfo["dtDeltaEntries"];
-    var ctOffsetEntries = timestampInfo["ctOffsetEntries"];
+    var dtDeltaEntries = sampleInfo.dtDeltaEntries;
+    var ctOffsetEntries = sampleInfo.ctOffsetEntries;
 
     if (number == 1)
     {
@@ -280,9 +277,9 @@ function GetSampleTable(sampleInfo)
 
 function FirstChunkAfterOffset(offset, sampleInfo)
 {
-    var offsetList = sampleInfo["offsetInfo"]["chunkOffsetList"];
+    var offsetList = sampleInfo.chunkOffsetList
 
-    if (offset >= offsetList[offsetList.length-1])
+    if (offset >= offsetList[offsetList.length - 1])
     {
         throw "No results. Given offset is >= maximum offset.";
     }
@@ -302,7 +299,7 @@ function FirstChunkAfterOffset(offset, sampleInfo)
 
 function FirstChunkBeforeOffset(offset, sampleInfo)
 {
-    var offsetList = sampleInfo["offsetInfo"]["chunkOffsetList"];
+    var offsetList = sampleInfo.chunkOffsetList;
 
     if (offset <= offsetList[0])
     {
