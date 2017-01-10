@@ -335,7 +335,7 @@ function ExtractSamplePointers(trakBox)
     var trackHeaderBox =     FindBox("tkhd", trakBox, true)[0];
     var handlerBox =         FindBox("hdlr", mdiaBox, true)[0];
 
-    var sampleInfo = {"offsetInfo": null, "timestampInfo": null, "codecInfo": null};
+    var sampleInfo = {};
 
     // offset information
     var chunkOffsetList =    ParseStcoBox(chunkOffsetBox);
@@ -377,6 +377,18 @@ function ExtractSamplePointers(trakBox)
         "handlerString": handlerString,
         "keyframeNumberList": keyframeNumberList,
     };
+
+    // Why a second level?
+    sampleInfo.chunkOffsetList = chunkOffsetList;
+    sampleInfo.sampleCountEntries = sampleCountEntries; // in stsc
+    sampleInfo.sampleSizeInfo = sampleSizeInfo; // in stsz
+
+    sampleInfo.dtDeltaEntries = dtDeltaEntries;
+    sampleInfo.ctOffsetEntries = ctOffsetEntries;
+
+    sampleInfo.trackId = trackId;
+    sampleInfo.handlerString = handlerString;
+    sampleInfo.keyframeNumberList = keyframeNumberList;
 
     return sampleInfo;
 }

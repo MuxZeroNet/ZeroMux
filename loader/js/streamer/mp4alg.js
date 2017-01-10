@@ -62,7 +62,7 @@ function GetMaxChunkNumber(sampleInfo)
 function GetChunkOffset(chunkNumber, sampleInfo)
 {
     var chunkOffsetList = sampleInfo["offsetInfo"]["chunkOffsetList"];
-    return chunkOffsetList[chunkNumber-1];
+    return chunkOffsetList[chunkNumber - 1];
 }
 
 // slow functions
