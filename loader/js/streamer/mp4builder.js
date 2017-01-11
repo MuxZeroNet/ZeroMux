@@ -289,7 +289,7 @@ function BuildNewMoovBox(mvhdBox, trakBoxList, mvexBox)
     return newMoovBox; // "folder"
 }
 
-function CollectBoxesBuildNewTrak(trakBox)
+function MakeNewTrak(trakBox)
 {
     var tkhdBox = FindBox("tkhd", trakBox, true)[0];
     var edtsBox = FindBox("edts", trakBox)[0];
@@ -420,7 +420,6 @@ function BuildNewTrunBox(fromFrame, toFrame, handler, sampleInfo)
     var count = entries.length;
     var relativeDataOffset = CalcDataOffset(count, handler);
 
-    var firstSampleFlags = DecideSampleFlags(true, handler); // if audio, ignore
 
 
     //content = struct.pack(">Ii", count, relativeDataOffset)
@@ -431,6 +430,8 @@ function BuildNewTrunBox(fromFrame, toFrame, handler, sampleInfo)
 
     if (handler == "vide")
     {
+        var firstSampleFlags = DecideSampleFlags(true, handler); // if audio, ignore
+
         //content += struct.pack(">I", firstSampleFlags)
         var fsfBytes = new Uint8Array(4);
         var fsfDataView = new DataView(fsfBytes.buffer);
@@ -570,7 +571,7 @@ function DecideTrunHeaderFlags(handler)
     }
 }
 
-// fragmnentation -- building moof box
+// fragmentation -- building moof box
 
 function BuildNewTrafBox(tfhdBox, tfdtBox, trunBox)
 {
@@ -606,7 +607,7 @@ function BuildNewMoofBox(mfhdBox, trafBox)
     return newMoofBox; // "folder" box
 }
 
-function CollectBoxesBuildNewMoof(trackId, handler, fromFrame, toFrame, sampleInfo, seqNumber)
+function MakeNewMoof(trackId, handler, fromFrame, toFrame, sampleInfo, seqNumber)
 {
     //firstSampleDt, ctOffset = GetSampleTimestamp(fromFrame, sampleInfo);
     var f_c = GetSampleTimestamp(fromFrame, sampleInfo);
@@ -627,9 +628,8 @@ function CollectBoxesBuildNewMoof(trackId, handler, fromFrame, toFrame, sampleIn
 
 function GetSampleEntries(fromFrame, toFrame, handler, sampleInfo)
 {
-    var timestampInfo = sampleInfo["timestampInfo"];
-    var dtDeltaEntries = timestampInfo["dtDeltaEntries"];
-    var ctOffsetEntries = timestampInfo["ctOffsetEntries"];
+    var dtDeltaEntries = sampleInfo.dtDeltaEntries;
+    var ctOffsetEntries = sampleInfo.ctOffsetEntries;
 
     var entries = [];
 

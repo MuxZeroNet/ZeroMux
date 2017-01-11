@@ -30,7 +30,7 @@ function loadMoov(moovBoxBytes)
         var trackId = GetTrackId(sampleInfo);
         var maxChunkNumber = GetMaxChunkNumber(sampleInfo);
 
-        var newTrak = CollectBoxesBuildNewTrak(trakBox);
+        var newTrak = MakeNewTrak(trakBox);
         newTrakBoxes.push(newTrak);
         // generate new trak box, and remember it
 
@@ -247,9 +247,9 @@ function writeFragment(fileInfo)
 
 function BuildFragment(fromFrame, toFrame, trackId, handler, sampleTable, sampleInfo, fileInfo, seqNumber)
 {
-    var moof = CollectBoxesBuildNewMoof(trackId, handler,
-                                        fromFrame, toFrame,
-                                        sampleInfo, seqNumber);
+    var moof = MakeNewMoof(trackId, handler,
+                           fromFrame, toFrame,
+                           sampleInfo, seqNumber);
     // build moof
     // fileInfo is not required
 
