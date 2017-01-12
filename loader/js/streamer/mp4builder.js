@@ -698,13 +698,13 @@ function GetFrameData(from_Frame, to_Frame, sampleTable, sampleInfo, fileStream)
 
     while (startFrame <= to_Frame)
     {
-        var sampleTableItem = FindItemInTable(startFrame, sampleTable);
+        var item = FindItemInTable(startFrame, sampleTable);
 
         //chunkNumber, chunkSize, firstSample, sampleCount = sampleTableItem;
-        var chunkNumber = sampleTableItem[0];
-        var chunkSize   = sampleTableItem[1];
-        var firstSample = sampleTableItem[2];
-        var sampleCount = sampleTableItem[3];
+        var chunkNumber = item[0];
+        var chunkSize   = item[1];
+        var firstSample = item[2];
+        var sampleCount = item[3];
 
         var chunkOffset = GetChunkOffset(chunkNumber, sampleInfo);
         // know where the chunk is
@@ -744,7 +744,7 @@ function GetFrameData(from_Frame, to_Frame, sampleTable, sampleInfo, fileStream)
         {
             // toFrame is within this chunk -- we are reaching the end
             var partialChunkSize = GetChunkLength(chunkNumber, sampleInfo,
-                                              to_Frame+1 - firstSample, firstSample)
+                to_Frame+1 - firstSample, firstSample)
             // In GetChunkLength:
             //      sampleBound = firstSample + count
             //   => count = sampleBound - firstSample
