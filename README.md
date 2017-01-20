@@ -17,32 +17,26 @@ You should never rely on ZeroMux to keep your data permanent. Although ZeroMux w
 
 ZeroMux does not strip metadata.
 
+## Limitations
+Both ZeroMux and ZeroNet use bleeding edge features of JavaScript. Browser implementations of these new features have bugs.
+
+Loading a cross-origin Web Worker script is not allowed in major browsers. I believe this is not the correct model regarding both usability and security. On Stack Overflow, there are many questions about loading cross-origin Web Workers, but few of them has a definite answer.
+
+MDN wiki editors wrote about [inline Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers), but there is a disagreement on whether a Blob URL is allowed to load a Web Worker. Google Chrome refuses to load a Blob URL Web Worker defined in an HTTPS page. Due to such disagreement, ZeroMux may not work on HTTPS-enabled ZeroNet gateways.
+
+Firefox renders Remote XUL Error when it tries to pop up a dialog from an iframe sandbox. This [Firefox bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1313268) will be fixed in Firefox 52. ZeroMux still works in Firefox, except Firefox assigns random names to files.
+
+Google Chrome refuses to load any Media Source URL in an iframe sandbox. This [Chromium bug](https://bugs.chromium.org/p/chromium/issues/detail?id=379206) was reported in 2014, but remains unfixed for more than 2 years. WebTorrent is also [affected](https://github.com/feross/webtorrent/issues/783) by this bug. Video streaming does not work in Google Chrome unless this bug is fixed.
+
 ## Ways to Help
 You can make ZeroMux project better by simply:
 - Testing ZeroMux on your computer, and suggesting ways to improve. [File an Issue](https://github.com/MuxZeroNet/ZeroMux/issues)
 - Talking to me [privately](http://127.0.0.1:43110/1CiDoBP8RiWziqiBGEd8tQMy66A6fmnw2V/big/docs/about/) about your experience.
-
-There are a lot of features that are not easy to use, not finished and not implemented. I will be very pleased if you can:
-- Think of ways to improve the [abstraction layer](https://github.com/MuxZeroNet/ZeroMux/tree/master/loader/js/streamer) between **chunks** and **bytes**. You can [file an issue](https://github.com/MuxZeroNet/ZeroMux/issues) or [open a pull request](https://github.com/MuxZeroNet/ZeroMux/).
-- Think of ways to improve the [Python backend](wizard.py).
-- Make a logo for ZeroMux.
 
 You can also help the ZeroNet community by seeding the files you like from some [file sharing Zites](http://127.0.0.1:43110/1CiDoBP8RiWziqiBGEd8tQMy66A6fmnw2V/big/docs/about/demos/).
 
 You can help us test [I2P support](https://github.com/HelloZeroNet/ZeroNet/issues/45), so that we can have even more seeders in the future.
 
 There are some browser bugs which ZeroNet developers are unable to fix. You can help us persuade Chromium developers that [blocking `blob:null/` in an iframe sandbox](https://bugs.chromium.org/p/chromium/issues/detail?id=379206) should be considered as a bug, not a feature. This long standing bug prevents MSE APIs from working properly in an iframe sandbox.
-
-If Chromium developers really love Chromium, they should have fixed this long standing bug regardless no one has filed a separate issue.
-
-> \*\*\*@chromium.org
->
-> [Another bug reporter], could you file a new bug and attach a test page that, when [...]
->
-> \*\*\*@chromium.org
->
-> \#10 and \#11 - could you file new bugs?
-
-Come on ...
 
 You can also donate to [ZeroNet](https://github.com/HelloZeroNet/ZeroNet) and help keep both projects alive.

@@ -158,6 +158,7 @@ class Backend(BaseHTTPServer.BaseHTTPRequestHandler):
     def ShowFileDialog(self):
         # show file dialog
         root = tk.Tk()
+        root.tk.call('tk', 'scaling', 2.0)
         root.wm_title("ZeroMux")
 
         w = tk.Label(root, text="Please, select your file.", \
