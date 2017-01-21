@@ -4,16 +4,20 @@ function needAppending(currentTime, bufferedRanges)
     {
         var rangeStart = bufferedRanges.start(i);
         var rangeEnd = bufferedRanges.end(i);
-        
+
         if(rangeStart <= currentTime && currentTime <= rangeEnd)
         {
             return (currentTime + 180 > rangeEnd);
         }
     }
-    
+
     return true;
 }
 
+function dummyQueries()
+{
+    return "_r=" + Math.random();
+}
 
 function spawnMp4Worker(moovBox, callback, failure)
 {
@@ -34,13 +38,12 @@ function _workerMade(worker, absDeps, moovBox, callback, failure)
 {
     worker.onerror = function (e)
     {
-        console.error("Worker Error: " 
-            + evt.filename + " Line " + evt.lineno + ":\n" + evt.message);
+        console.error("Worker Error: "
+            + e.filename + " Line " + e.lineno + ":\n" + e.message);
     };
 
     worker.onmessage = function(e)
     {
-        console.log("_workerMade");
         console.log(e.data);
         // e.data == [cmd, args]
 
@@ -49,11 +52,12 @@ function _workerMade(worker, absDeps, moovBox, callback, failure)
             if(e.data[1] == "imported")
             {
                 // load moov box
-                worker.postMessage(["moov", moovBox]); 
+                worker.postMessage(["moov", moovBox]);
             }
             else if(e.data[1] == "samplesLoaded")
             {
                 // worker initialized
+                worker.onmessage = null;
                 callback(worker);
             }
         }
@@ -66,3 +70,84 @@ function _workerMade(worker, absDeps, moovBox, callback, failure)
     worker.postMessage(["import", absDeps]);
 }
 
+function pipeToBuffer(worker, stream, mediaSource, sourceBuffer)
+{
+    var next = function()
+    {
+        worker.postMessage(["signal", "continue"]);
+    };
+
+    var appendAndNext = function(buffer)
+    {
+        console.log("appending buffer");
+        sourceBuffer.appendBuffer(buffer);
+    };
+
+    sourceBuffer.addEventListener('updateend', function(e)
+    {
+        console.log("update end");
+        next();
+    });
+
+    var endSource = function()
+    {
+        console.log("MSE stream ended.");
+        // mediaSource.endOfStream();
+    };
+
+    var streamCb = function(offset, data)
+    {
+        worker.postMessage(["mp4", data]);
+    };
+
+    worker.onmessage = function(e)
+    {
+        var cmd = e.data[0];
+        var args = e.data[1];
+
+        if(cmd == "signal")
+        {
+            if(args == "wantMore")
+            {
+                _dataReader(worker, stream, "current", streamCb);
+            }
+            else if(args == "done")
+            {
+                endSource();
+            }
+            else
+            {
+                console.error("Unknown signal " + args);
+            }
+        }
+        else if(cmd == "mp4")
+        {
+            appendAndNext(args);
+        }
+        else
+        {
+            console.error("Bad command " + cmd);
+        }
+    };
+
+    return next;
+}
+
+function _dataReader(worker, stream, offset, streamCb)
+{
+    stream.readFrom(offset, function(o, data)
+    {
+        if(data == null)
+        {
+            console.error("Read failed.");
+        }
+        else if(data.byteLength == 0)
+        {
+            console.warn("EOF");
+        }
+        else
+        {
+            streamCb(o, data);
+        }
+    });
+}

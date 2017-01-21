@@ -46,8 +46,7 @@ function loadMoov(moovBoxBytes)
         descIndexList.push(desc);
         // description index
 
-        var handlerString = sampleInfo["codecInfo"]["handlerString"];
-        handlerList.push(handlerString);
+        handlerList.push(sampleInfo.handlerString);
         // remember handler string
 
         //for chunkNumber in range(1, maxChunkNumber+1):
@@ -92,10 +91,12 @@ maxAudioSample = 0;
 videoTrackId = 0;
 audioTrackId = 0;
 
+initSegment = null;
+
 function loadSamples()
 {
-    vIndex = GetVideoTrackIndex(handlerList);
-    aIndex = GetAudioTrackIndex(handlerList);
+    vIndex = TrackIndex(handlerList, "vide");
+    aIndex = TrackIndex(handlerList, "soun");
 
     videoSampleInfo = sampleInfoList[vIndex];
     videoSampleTable = GetSampleTable(videoSampleInfo);
@@ -119,7 +120,7 @@ function writeHeader(fileInfo)
 {
     if (fileInfo.beginOffset != 0 || fileInfo.pointer != 0)
     {
-        throw "Worker: writeHeader: offset?/pointer?";
+        throw "Worker: writeHeader: Invalid position";
     }
     if (fileInfo.dataView.byteLength < 4)
     {
@@ -146,7 +147,7 @@ function writeHeader(fileInfo)
     workerState = "writingFragments";
 
     var bytesToWrite = concatArrays(ftypBytes, newMoovBytes);
-    return bytesToWrite;
+    return bytesToWrite; // init segment
 }
 
 
@@ -203,7 +204,9 @@ function writeFragment(fileInfo)
 
 
     // audio
-    var audioToFrame = (i < kfList.length - 1) ? GetAudioFrameEnd(toVideoChunkOffset, audioSampleTable, audioSampleInfo) : maxAudioSample; // all audio frames before that video frame
+    var audioToFrame = (i < kfList.length - 1)
+        ? GetAudioFrameEnd(toVideoChunkOffset, audioSampleTable, audioSampleInfo)
+        : maxAudioSample; // all audio frames before that video frame
 
     console.log("video: from " + fromFrame + " to " + toFrame);
     console.log("audio: from " + audioFromFrame + " to " + audioToFrame);
@@ -239,8 +242,6 @@ function writeFragment(fileInfo)
     var aFrag = concatArrays(aMoof, aMdat);
     var bytesToWrite = concatArrays(vFrag, aFrag);
 
-    //writeBytes(bytesToWrite);
-
     return bytesToWrite;
 }
 
@@ -271,8 +272,7 @@ function BuildFragment(fromFrame, toFrame, trackId, handler, sampleTable, sample
 
 function GetKeyFrameList(sampleInfo)
 {
-    var kfList = sampleInfo["codecInfo"]["keyframeNumberList"];
-    return kfList;
+    return sampleInfo.keyframeNumberList;
 }
 
 function GetAudioFrameEnd(beforeOffset, audioSampleTable, audioSampleInfo)
@@ -290,34 +290,16 @@ function GetAudioFrameEnd(beforeOffset, audioSampleTable, audioSampleInfo)
     return firstSample + sampleCount - 1;
 }
 
-function GetAudioTrackIndex(handlerList)
+function TrackIndex(handlerList, trackName)
 {
-    //for i in range(len(handlerList)):
-    for(var i = 0; i < handlerList.length; i++)
+    var index = handlerList.indexOf(trackName);
+    if(index < 0)
     {
-        if (handlerList[i] == "soun")
-        {
-            return i;
-        }
+        throw "No " + trackName + " tracks."
     }
 
-    throw "No audio tracks.";
+    return index;
 }
-
-function GetVideoTrackIndex(hanlderList)
-{
-    for(var i = 0; i < handlerList.length; i++)
-    {
-        if (handlerList[i] == "vide")
-        {
-            return i;
-        }
-    }
-
-    throw "No video tracks.";
-}
-
-
 
 
 function writeBytes(bytes)
@@ -419,6 +401,7 @@ function handleMp4(args)
         }
         else
         {
+            initSegment = headerBytes;
             writeBytes(headerBytes);
         }
     }
@@ -487,21 +470,19 @@ var buffer = new Uint8Array(0);
 
 function handleSignal(args)
 {
-    switch(args)
+    if(args == "continue" || args == "next")
     {
-        case "continue": // sent by MSE
-            handleMp4(null);
-            break;
-
-        case "noData": //sent by `wait`
-            console.log("Worker: no data received. We are done.");
-            workerState = "done";
-            signal("done");
-            break;
-
-        default:
-            console.log("MP4 worker: unrecognized signal");
-            break;
+        handleMp4(null);
+    }
+    else if(args == "noData" || args == "eof")
+    {
+        console.log("Worker: EOF received. We are done.");
+        workerState = "done";
+        signal("done");
+    }
+    else
+    {
+        console.log("MP4 worker: unrecognized signal");
     }
 }
 

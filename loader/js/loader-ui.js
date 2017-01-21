@@ -96,7 +96,6 @@ function createFolderItem(name, iconName, additionalStyles, href, onclick)
     if(href != null && href.trim().length > 0)
     {
         itemLinkElement.href = href;
-        // itemLinkElement.target = "_blank"; // Firefox BUG
         itemLinkElement.target = "_top";
     }
     itemLinkElement.onclick = function(e)

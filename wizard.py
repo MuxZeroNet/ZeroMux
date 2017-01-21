@@ -8,7 +8,6 @@ import os
 
 import argparse
 
-import BaseHTTPServer
 import webbrowser
 import urllib
 import io
@@ -26,6 +25,9 @@ import codecs
 
 import datetime
 
+from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+# from SocketServer import ThreadingMixIn
+# from threading import Thread, Lock
 
 def GetRootPath():
     p = os.path.normpath(os.path.dirname(os.path.abspath(__file__)) + "/")
@@ -38,7 +40,8 @@ from DataStructure import *
 from AbstractRW import *
 
 
-class Backend(BaseHTTPServer.BaseHTTPRequestHandler):
+
+class Backend(BaseHTTPRequestHandler):
     state_refuse_choose_file = False
     selected_file = ""
     selected_vpath = ""
@@ -435,7 +438,6 @@ class Backend(BaseHTTPServer.BaseHTTPRequestHandler):
 
         webbrowser.open(real_folder)
 
-
     def HandleDebug(self):
         resp = {}
         resp["global_file_list"] = global_file_list
@@ -520,6 +522,7 @@ class Backend(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("Content-Security-Policy", "frame-ancestors 'none';")
         self.send_header("Server", "ZeroMux Configuration Wizard")
         self.end_headers()
+
 
 
 
@@ -649,10 +652,10 @@ def SaveFirstRunJs():
 
 
 
-def ServerForever():
+def ServeForever():
     host_name = '127.0.0.1'
     port_number = 18905
-    httpd = BaseHTTPServer.HTTPServer((host_name, port_number), Backend)
+    httpd = HTTPServer((host_name, port_number), Backend)
 
     print("Server Starts - %s:%s" % (host_name, port_number))
     webbrowser.open_new_tab("http://" + host_name + ":" + str(port_number) + "/");
@@ -699,7 +702,7 @@ def Main():
         global_file_list = ReadRawFileList(f)
         global_root_folder_content = ReadRawFolderContent(r, _all_folder_id=global_all_folder_ids)
 
-    ServerForever()
+    ServeForever()
 
 
 def CliMain(input_file, out_folder, size_kb, rel_path, friendly_name):
