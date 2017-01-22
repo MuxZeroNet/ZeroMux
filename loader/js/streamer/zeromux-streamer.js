@@ -45,6 +45,15 @@ function _createSource(args, jsonObj, videoElement, callback)
         obj["sourceBuffer"] = e[1];
         obj["mediaUrl"] = e[2];
 
+        obj["fnCurrentTime"] = function()
+        {
+            return videoElement.currentTime;
+        };
+        obj["fnRanges"] = function()
+        {
+            return videoElement.buffered;
+        };
+
         // make byte stream
         obj["stream"] = newByteStream(args.jsonPath, jsonObj[1], initEventObj());
         // obj.stream.preload();
@@ -87,7 +96,8 @@ function _makeMux(args, obj, moov, callback)
         obj["worker"] = worker;
 
         // pipe Mux
-        obj["next"] = pipeToBuffer(worker, obj.stream, obj.mediaSource, obj.sourceBuffer)
+        obj["next"] = pipeToBuffer(worker, obj.stream, obj.mediaSource, obj.sourceBuffer,
+            obj.fnCurrentTime, obj.fnRanges);
 
         obj.stream.preload(); // (preload) start stream
         obj.next(); // start Multiplexer

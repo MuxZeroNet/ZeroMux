@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Video Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        #video-container {
+            margin-top: 5vh;
+            margin-bottom: 5vh;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 80vw;
+        }
+        #video-player {
+            height: 90vh;
+            width: calc(16*(90vh)/9);
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+        }
+    </style>
+    
+    <!-- required files, do not change -->
+    <script src="js/zeromux/utils.js"></script>
+    <script src="js/zeromux/reader.js"></script>
+    <script src="js/zeromux/download.js"></script>
+    <script src="js/zeromux/asmcrypto.js"></script>
+
+    <script src="js/streamer/stream-daemon.js"></script>
+    <script src="js/streamer/byte-stream.js"></script>
+
+    <script src="js/streamer/msg-handler.js"></script>
+    <script src="js/streamer/zeromux-streamer.js"></script>
+    <!-- . . . -->
+</head>
+
+<body>
+    <div id="video-container">
+        <video id="video-player" controls>
+            Your browser does not support video tag.
+        </video>
+    </div>
+    <div>
+        Technical details are logged to console.
+    </div>
+</body>
+    <script>
+        var args = streamArgs(
+            "path/to/file.json",
+            "path/to/moov_box.dat",
+            'video/mp4; codecs="avc1.______, mp4a.__._"' // codec string
+        );
+
+        // Get codec string at https://nickdesaulniers.github.io/mp4info/
+        // video/mp4; codecs="......"
+        // quotation marks are required
+
+        var videoElement = document.getElementById('video-player');
+
+        var cbFn = function(obj)
+        {
+            console.log(obj);
+        };
+
+        downloadAndAttach(args, videoElement, cbFn);
+    </script>
+</html>

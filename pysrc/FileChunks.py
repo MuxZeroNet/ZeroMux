@@ -3,6 +3,7 @@
 
 import os
 import shutil
+import io
 
 import re
 import json
@@ -11,6 +12,7 @@ import random
 import hashlib
 import codecs
 
+from Mp4Atom import *
 
 
 def FolderNameIsUgly(chosen_folder_name, real_file_name):
@@ -189,6 +191,58 @@ def SplitFile(filePath, savePath, relativePath, givenFileName, idealChunkSize=50
     jsonFileInfo.flush()
     jsonFileInfo.close()
 
+    fileInfo.close()
+
+def SaveStreamingData(in_file, out_folder):
+    if in_file.lower().endswith(".mp4"):
+        out_file = out_folder + "/moov_box.dat"
+        moov_box = TrySaveMoov(in_file, out_file) # save moov
+        # save other data if moov_box != None
+        # ...metadata.json...
+        if moov_box:
+            return True
+
+    return False
+
+def TrySaveMoov(mp4_file, out_file):
+    file_info = io.open(mp4_file, 'rb')
+    moov_box = TryGetMoov(file_info)
+    file_info.close()
+
+    if not moov_box:
+        return None
+
+    print "Saving moov box... " + out_file
+
+    out_file = io.open(out_file, 'wb')
+    out_file.write(PackBox(moov_box))
+    out_file.flush()
+    out_file.close()
+
+    return moov_box
+
+def TryGetMoov(file_info):
+    file_info.seek(0, 0)
+    moov_box = None
+    try:
+        moov_box = FindOneBox(file_info, 'moov')
+    except Mp4Error, e:
+        print "Cannot find moov box - " + e.message
+        return None
+
+    movie_fragment_box = None
+    try:
+        movie_fragment_box = FindOneBox(file_info, 'moof')
+    except Mp4EndedError, e1:
+        print "It does not appear to be fMP4"
+    except Mp4Error, e2:
+        print "Mp4 Decoding error - " + e2.message
+        return None
+
+    if movie_fragment_box == None:
+        return moov_box
+    else:
+        return None
 
 
 def DeleteFileJsonFolder(file_json_path, file_id, files_folder_path, trash_path):

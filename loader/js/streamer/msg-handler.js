@@ -1,17 +1,36 @@
 function needAppending(currentTime, bufferedRanges)
 {
+    // MDN:
+    // This object is normalized, which means that ranges
+    // are ordered, don't overlap, aren't empty,
+    // and don't touch (adjacent ranges are folded into one bigger range).
+
     for(var i = 0; i < bufferedRanges.length; i++)
     {
         var rangeStart = bufferedRanges.start(i);
         var rangeEnd = bufferedRanges.end(i);
 
+        // [   |  ]
         if(rangeStart <= currentTime && currentTime <= rangeEnd)
         {
             return (currentTime + 180 > rangeEnd);
         }
+        // | [       ]
+        else if(rangeStart > currentTime)
+        {
+            return false; // needs to seek
+        }
+
+        // else
+        // {
+        //     [      ]   |
+        //              [       ]
+        // }
     }
 
+    // [      ]  [   ] [  ]   [      ]     |
     return true;
+    // TODO: if too far away, seek
 }
 
 function dummyQueries()
@@ -70,11 +89,11 @@ function _workerMade(worker, absDeps, moovBox, callback, failure)
     worker.postMessage(["import", absDeps]);
 }
 
-function pipeToBuffer(worker, stream, mediaSource, sourceBuffer)
+function pipeToBuffer(worker, stream, mediaSource, sourceBuffer, fnCurrentTime, fnRanges)
 {
     var next = function()
     {
-        worker.postMessage(["signal", "continue"]);
+        _blockingAppend(worker, fnCurrentTime, fnRanges);
     };
 
     var appendAndNext = function(buffer)
@@ -150,4 +169,21 @@ function _dataReader(worker, stream, offset, streamCb)
             streamCb(o, data);
         }
     });
+}
+
+function _blockingAppend(worker, fnCurrentTime, fnRanges)
+{
+    var wait = function()
+    {
+        if(needAppending(fnCurrentTime(), fnRanges()))
+        {
+            worker.postMessage(["signal", "continue"]);
+        }
+        else
+        {
+            requestAnimationFrame(wait);
+        }
+    };
+
+    requestAnimationFrame(wait);
 }

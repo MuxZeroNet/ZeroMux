@@ -549,10 +549,7 @@ def ChooseContentType(ext):
     ".png": "image/png", ".tiff": "image/tiff", ".gif": "image/gif",
     ".svg": "image/svg+xml", ".bmp": "image/bmp", ".mp4": "video/mp4", ".webm": "video/webm"}
 
-    if ext_type.has_key(x):
-        return ext_type[x]
-    else:
-        return ""
+    return ext_type.get(ext, "")
 
 def SplitQueries(path_header):
     if "?" not in path_header:
@@ -597,6 +594,9 @@ def HandleFileInput(file_path, given_file_name, folder_name, existing_ids):
     ideal_chunk_size = ChooseChunkSize(os.path.getsize(file_path))
     os.mkdir(save_to_folder)
     SplitFile(file_path, save_to_folder, "files/" + safe_folder_name, given_file_name, ideal_chunk_size)
+
+    # start saving data for media streaming
+    has_metadata = SaveStreamingData(file_path, save_to_folder)
 
     # return a new file_info reference
     new_file_id = GenerateNewUniqueId('file', existing_ids)
