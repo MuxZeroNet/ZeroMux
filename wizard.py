@@ -6,7 +6,6 @@ print "ZeroMux Bundle" # Hey, there! You need Python 2.7
 import sys
 import os
 
-import argparse
 
 import webbrowser
 import urllib
@@ -705,52 +704,6 @@ def Main():
     ServeForever()
 
 
-def CliMain(input_file, out_folder, size_kb, rel_path, friendly_name):
-    if not os.path.isfile(input_file):
-        raise Exception("Input File does not exist.")
-    if not os.path.isdir(out_folder):
-        raise Exception("Out Folder does not exist.")
-    if size_kb != None:
-        if size_kb <= 1:
-            raise Exception("Chunk size is too small.")
-        if size_kb > 10000:
-            raise Exception("Chunk size is too large.")
-
-    size_bytes = 0
-    if size_kb:
-        size_bytes = size_kb * 1024
-    else:
-        size_bytes = ChooseChunkSize(os.path.getsize(input_file))
-
-    chosen_folder_name = ""
-    if not rel_path:
-        input_file_name = os.path.basename(input_file)
-        chosen_folder_name = CorrectFolderName(input_file_name, out_folder, input_file_name)
-        rel_path = "files/" + chosen_folder_name
-    else:
-        rel_path = rel_path.replace("\\", "/").strip()
-        if rel_path.endswith("/"):
-            rel_path = rel_path[0:-1]
-        chosen_folder_name = os.path.basename(rel_path)
-
-    chunk_folder = out_folder + "/" + chosen_folder_name
-    if os.path.exists(chunk_folder):
-        raise Exception("Failed to assign chunk folder name.")
-
-    if not friendly_name:
-        friendly_name = os.path.basename(input_file)
-
-    print "Using arguments:\n" + \
-        "Input file: " + input_file + "\n" + \
-        "Output directory for chunks: " + chunk_folder + "/" + "\n" + \
-        "Chunk size: " + str(1.0*size_bytes/1024) + "KB" + "\n" + \
-        "Relative path: " + rel_path + "\n" + \
-        "Friendly name: " + friendly_name
-
-    os.mkdir(chunk_folder)
-    SplitFile(input_file, chunk_folder, rel_path, friendly_name, size_bytes)
-
-    print "Done."
 
 
 if __name__ != "__main__":
@@ -758,38 +711,5 @@ if __name__ != "__main__":
 elif len(sys.argv) == 1:
     Main()
 else:
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, \
-        description="ZeroMux Configuration Wizard", \
-        epilog="""_______
-Example: Suppose you have a 01.mp4 in your My Documents folder.
-         You want to slice it into 500kb chunks,
-         save these chunks to E:\\MySite\\loader\\files\\yosuga_no_sora\\
-         and have this friendly name "Yosuga no Sora.mp4" displayed.
-         You type:
-
-         wizard.py -i \"D:\\My Documents\\01.mp4\"
-                   -out_dir \"E:\\MySite\\loader\\files\"
-                   -chunk_size 500
-                   -rel_path \"files/yosuga_no_sora\"
-                   -name \"Yosuga no Sora.mp4\"
-    """)
-
-    parser.add_argument("-i", action="store", dest="input", help="file to split")
-    parser.add_argument("-out_dir", action="store", dest="folder", \
-        help="""output directory. Note that a new folder will be created
-        in the specified directory to store the chunks.""")
-
-    parser.add_argument("-chunk_size", action="store", dest="size_kb", type=int, \
-        help="""[optional] chunk size in KB.
-        If not specified, a reasonable value will be calculated and chosen.""")
-
-    parser.add_argument("-rel_path", action="store", dest="rel_path", \
-        help="""[optional] relative folder path with respect to __file loading page__.
-        (e.g. http://site.com/pathto/loader/files/big_file/*.dat => -rel_path \"files/big_file\")
-        Specifying rel_path will also change the name of the new folder created.""")
-    parser.add_argument("-name", action="store", dest="name", \
-        help="[optional] specify a friendly file name to be displayed")
-
-    args = parser.parse_args()
-
-    CliMain(args.input, args.folder, args.size_kb, args.rel_path, args.name)
+    import Cli
+    Cli.Main()

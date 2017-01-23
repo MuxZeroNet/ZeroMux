@@ -107,7 +107,7 @@ def FindOneBox(file_info, name, full_box=False):
 
     content = file_info.read(content_length)
     if len(content) != content_length:
-        raise Mp4EndedError("Reached EOF when reading box content")
+        raise Mp4Error("Reached EOF when reading box content")
 
     AssignContent(box, content, reset_size=False)
     return box
