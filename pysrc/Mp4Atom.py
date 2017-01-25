@@ -71,6 +71,8 @@ def AssignContent(box, content, reset_size=True):
 def ReadBoxHeader(file_info, full_box=False):
     size_bytes = file_info.read(4)
     name_bytes = file_info.read(4)
+    if len(size_bytes) == 0:
+        return None
     if len(size_bytes) < 4 or len(name_bytes) < 4:
         raise Mp4EndedError("Reached EOF")
 
@@ -85,19 +87,24 @@ def ReadBoxHeader(file_info, full_box=False):
 
 def ReadVersionFlags(file_info):
     version_flags = file_info.read(4)
-    if len(version_bytes) < 1 or len(flags_bytes) < 3:
+    if len(version_flags) < 4:
         raise Mp4EndedError("Reached EOF")
 
-    version, flags = struct.unpack(">B3s")
+    version, flags = struct.unpack(">B3s", version_flags)
     return (version, flags)
 
 def FindOneBox(file_info, name, full_box=False):
     box = ReadBoxHeader(file_info)
+    if not box:
+        return None
+
     while BoxName(box) != name:
         # skip content
         file_info.seek(BoxSize(box) - BOX_HEADER_LENGTH, 1) # 1 == RELATIVE
         # read another box header
         box = ReadBoxHeader(file_info)
+        if not box:
+            return None
 
     content_length = BoxSize(box) - BOX_HEADER_LENGTH
     if full_box:
@@ -112,11 +119,35 @@ def FindOneBox(file_info, name, full_box=False):
     AssignContent(box, content, reset_size=False)
     return box
 
+def FindByPath(file_info, path):
+    box = None
+    memory_stream = None
+
+    path_parts = path.split(".")
+    while len(path_parts) > 0:
+        box_name = path_parts.pop(0)
+        full_box = False
+        if box_name.endswith("!"):
+            box_name = box_name[0:4]
+            full_box = True
+
+        target_stream = memory_stream or file_info
+        box = FindOneBox(target_stream, box_name, full_box)
+        if not box:
+            return None
+        
+        if memory_stream:
+            memory_stream.close()
+        memory_stream = io.BytesIO(BoxContent(box))
+
+    memory_stream.close()
+    return box
+
+
+
 def PackBox(box):
     if BoxSize(box) < 4:
         raise Mp4Error("Cannot pack box whose size < 4")
-    if BoxName(box) == "uuid":
-        raise Mp4Error("uuid box packing not implemented")
 
     header = struct.pack(">I4s", BoxSize(box), BoxName(box))
     if IsFullBox(box):

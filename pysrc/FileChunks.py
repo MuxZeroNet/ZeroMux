@@ -13,7 +13,7 @@ import hashlib
 import codecs
 
 from Mp4Atom import *
-
+from BoxDecoder import *
 
 def FolderNameIsUgly(chosen_folder_name, real_file_name):
     if len(chosen_folder_name) > 50:
@@ -193,16 +193,34 @@ def SplitFile(filePath, savePath, relativePath, givenFileName, idealChunkSize=50
 
     fileInfo.close()
 
+def SaveMetadataFile(metadata, out_folder):
+    if len(metadata) > 0:
+        print "Saving %s/metadata.json ..." % out_folder
+        
+        file_info = io.open(out_folder + "/metadata.json", 'w', encoding='utf-8')
+        file_info.write( unicode(json.dumps(metadata)) )
+        file_info.flush()
+        file_info.close()
+
+    return len(metadata) > 0
+
+
 def SaveStreamingData(in_file, out_folder):
+    metadata = {}
+
     if in_file.lower().endswith(".mp4"):
         out_file = out_folder + "/moov_box.dat"
         moov_box = TrySaveMoov(in_file, out_file) # save moov
-        # save other data if moov_box != None
-        # ...metadata.json...
         if moov_box:
-            return True
+            try:
+                codec_string = Mp4CodecString(moov_box)
+                if codec_string:
+                    metadata["format"] = "mp4"
+                    metadata["codecString"] = codec_string
+            except Mp4Error:
+                pass
 
-    return False
+    return SaveMetadataFile(metadata, out_folder)
 
 def TrySaveMoov(mp4_file, out_file):
     file_info = io.open(mp4_file, 'rb')
@@ -221,28 +239,61 @@ def TrySaveMoov(mp4_file, out_file):
 
     return moov_box
 
-def TryGetMoov(file_info):
+def TryGetMoov(file_info, check_fmp4=True):
     file_info.seek(0, 0)
     moov_box = None
     try:
         moov_box = FindOneBox(file_info, 'moov')
     except Mp4Error, e:
-        print "Cannot find moov box - " + e.message
+        print "# Cannot find moov box - " + e.message
         return None
+
+    if not check_fmp4:
+        return moov_box
 
     movie_fragment_box = None
     try:
         movie_fragment_box = FindOneBox(file_info, 'moof')
-    except Mp4EndedError, e1:
-        print "It does not appear to be fMP4"
-    except Mp4Error, e2:
-        print "Mp4 Decoding error - " + e2.message
+    except Mp4Error, e:
+        print "# Mp4 Decoding error - " + e.message
         return None
 
     if movie_fragment_box == None:
         return moov_box
     else:
         return None
+
+def Mp4CodecString(moov_box):
+    moov_stream = io.BytesIO(BoxContent(moov_box))
+    video, audio = "", ""
+
+    stsd = FindByPath(moov_stream, "trak.mdia.minf.stbl.stsd!")
+    while stsd and not (video and audio):
+        stsd_box = StsdBox(BoxContent(stsd))
+        avc1 = StsdVideoBox(stsd_box)
+        mp4a = StsdAudioBox(stsd_box)
+
+        if (not video) and avc1:
+            # parse avcC
+            avc1_box = Avc1Box(BoxContent(avc1))
+            avcC_box = AvcCBox(AvcCBytes(avc1_box))
+            video = VideoCodec(avcC_box)
+        if (not audio) and mp4a:
+            # parse mp4a
+            mp4a_box = Mp4aBox(BoxContent(mp4a))
+            esds_box = EsdsBox(EsdsBytes(mp4a_box))
+            audio = AudioCodec(esds_box)
+
+        stsd = FindByPath(moov_stream, "trak.mdia.minf.stbl.stsd!")
+
+    if video and audio:
+        return 'video/mp4; codecs="avc1.%s, mp4a.%s"' % (video, audio)
+    elif video:
+        return 'video/mp4; codecs="avc1.%s"' % video
+    elif audio:
+        return 'video/mp4; codecs="mp4a.%s"' % audio
+    else:
+        raise Mp4Error("Unsupported codecs")
 
 
 def DeleteFileJsonFolder(file_json_path, file_id, files_folder_path, trash_path):

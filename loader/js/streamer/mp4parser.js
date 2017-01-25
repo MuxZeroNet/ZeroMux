@@ -28,12 +28,6 @@ function ReadBox(fileInfo, fullBox=false, skipContent=false)
     }
 
 
-    if (boxType == 'uuid')
-    {
-        throw "Box type: UUID type is not implemented.";
-    }
-
-
     if (fullBox)
     {
         if (bytesLeft < 4)

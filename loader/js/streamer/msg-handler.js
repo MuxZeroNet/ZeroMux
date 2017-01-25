@@ -13,12 +13,12 @@ function needAppending(currentTime, bufferedRanges)
         // [   |  ]
         if(rangeStart <= currentTime && currentTime <= rangeEnd)
         {
-            return (currentTime + 180 > rangeEnd);
+            return (currentTime + 180 > rangeEnd) ? "append" : "no";
         }
         // | [       ]
         else if(rangeStart > currentTime)
         {
-            return false; // needs to seek
+            return "seek";
         }
 
         // else
@@ -29,8 +29,18 @@ function needAppending(currentTime, bufferedRanges)
     }
 
     // [      ]  [   ] [  ]   [      ]     |
-    return true;
-    // TODO: if too far away, seek
+
+    // if too far away, seek
+    if(bufferedRanges.length > 0)
+    {
+        if (currentTime - bufferedRanges.end(bufferedRanges.length - 1) > 60)
+        {
+            return "seek";
+        }
+    }
+    
+    return "append";
+    
 }
 
 function dummyQueries()
@@ -91,9 +101,9 @@ function _workerMade(worker, absDeps, moovBox, callback, failure)
 
 function pipeToBuffer(worker, stream, mediaSource, sourceBuffer, fnCurrentTime, fnRanges)
 {
-    var next = function()
+    var next = function(streamEnded=false)
     {
-        _blockingAppend(worker, fnCurrentTime, fnRanges);
+        _blockingAppend(worker, fnCurrentTime, fnRanges, streamEnded);
     };
 
     var appendAndNext = function(buffer)
@@ -111,7 +121,10 @@ function pipeToBuffer(worker, stream, mediaSource, sourceBuffer, fnCurrentTime, 
     var endSource = function()
     {
         console.log("MSE stream ended.");
-        // mediaSource.endOfStream();
+        // TODO: keep _blockingAppend running.
+        // Don't append, but should handle seek
+        streamEnded = true;
+        next(true);
     };
 
     var streamCb = function(offset, data)
@@ -171,18 +184,28 @@ function _dataReader(worker, stream, offset, streamCb)
     });
 }
 
-function _blockingAppend(worker, fnCurrentTime, fnRanges)
+function _blockingAppend(worker, fnCurrentTime, fnRanges, streamEnded)
 {
     var wait = function()
     {
-        if(needAppending(fnCurrentTime(), fnRanges()))
+        var decision = needAppending(fnCurrentTime(), fnRanges());
+        if(decision == "append" && !streamEnded)
         {
             worker.postMessage(["signal", "continue"]);
+        }
+        else if(decision == "seek")
+        {
+            // TODO: seek
+            requestAnimationFrame(wait);
         }
         else
         {
             requestAnimationFrame(wait);
         }
+
+        // TODO: failsafe
+        // if reports "don't append"
+        // but playback got stuck for a long time, seek
     };
 
     requestAnimationFrame(wait);
