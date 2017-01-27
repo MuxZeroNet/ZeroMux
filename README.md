@@ -31,7 +31,7 @@ MDN wiki editors wrote about [inline Web Workers](https://developer.mozilla.org/
 
 Firefox renders Remote XUL Error when it tries to pop up a dialog from an iframe sandbox. This [Firefox bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1313268) will be fixed in Firefox 52. ZeroMux still works in Firefox, except Firefox assigns random names to files.
 
-When user holds left key and drags on the progress bar of a video element, Firefox prints `uncaught exception: undefined (unknown)` to console. However, ZeroMux still seems to work. Such uncaught exception [can also be seem on YouTube](https://github.com/dailymotion/hls.js/issues/845). A comment on [Stack Overflow](https://stackoverflow.com/questions/41499109/how-to-debug-uncaught-exception-undefined-unknown-in-firefox/41744948) suggests such exception is due to the error in Firefox internals. I assume it is a Firefox bug. 
+When user holds left key and drags on the progress bar of a video element, Firefox prints `uncaught exception: undefined (unknown)` to console. However, ZeroMux still seems to work. Such uncaught exception [can also be seem on YouTube](https://github.com/dailymotion/hls.js/issues/845). A comment on [Stack Overflow](https://stackoverflow.com/questions/41499109/how-to-debug-uncaught-exception-undefined-unknown-in-firefox/41744948) suggests such exception is due to the error in Firefox internals. I assume it is a Firefox bug.
 
 Google Chrome refuses to load any Media Source URL in an iframe sandbox. This [Chromium bug](https://bugs.chromium.org/p/chromium/issues/detail?id=379206) was reported in 2014, but remains unfixed for more than 2 years. WebTorrent is also [affected](https://github.com/feross/webtorrent/issues/783) by this bug. Video streaming does not work in Google Chrome unless this bug is fixed.
 
@@ -47,3 +47,10 @@ You can help us test [I2P support](https://github.com/HelloZeroNet/ZeroNet/issue
 There are some browser bugs which ZeroNet developers are unable to fix. You can help us persuade Chromium developers that [blocking `blob:null/` in an iframe sandbox](https://bugs.chromium.org/p/chromium/issues/detail?id=379206) should be considered as a bug, not a feature. This long standing bug prevents MSE APIs from working properly in an iframe sandbox.
 
 You can also donate to [ZeroNet](https://github.com/HelloZeroNet/ZeroNet) and help keep both projects alive.
+
+## Acknowledgement
+ZeroMux benefits from the super-fast [asmCrypto.js](https://github.com/vibornoff/asmcrypto.js/tree/master) library.
+
+ZeroMux gets around [a Firefox bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1313268) with the assistance of [SandBlaster](https://github.com/JamesMGreene/sandblaster).
+
+The code for parsing MP4 codec string is extensively based on [mp4-box-encoding](https://github.com/jhiesey/mp4-box-encoding).

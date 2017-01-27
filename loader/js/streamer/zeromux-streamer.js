@@ -1,3 +1,21 @@
+function streamError(msg)
+{
+    console.error("Stream Error: " + msg);
+    return {
+        "error": msg
+    };
+}
+
+function hasStreamError(obj)
+{
+    return obj.hasOwnProperty("error");
+}
+
+function streamErrorMsg(obj)
+{
+    return obj["error"];
+}
+
 function streamArgs(jsonPath, moovPath, codecs)
 {
     return {
@@ -7,10 +25,15 @@ function streamArgs(jsonPath, moovPath, codecs)
     };
 }
 
+function withUserEvents(args, events)
+{
+    args["events"] = events;
+}
+
 function downloadAndAttach(args, videoElement, cbFn)
 {
     var nop = function() {};
-    var callback = (cbFn == null) ? nop : cbFn;
+    var callback = cbFn || nop;
 
     var success = function(xmlHttp)
     {
@@ -19,7 +42,7 @@ function downloadAndAttach(args, videoElement, cbFn)
 
     var failure = function(xmlHttp, reason)
     {
-        callback(null);
+        callback(streamError("Failed to download file.json"));
     };
 
     // request JSON
@@ -37,7 +60,7 @@ function _createSource(args, jsonObj, videoElement, callback)
     {
         if(e == null)
         {
-            callback(null);
+            callback(streamError("Can't create media source."));
             return;
         }
 
@@ -55,8 +78,8 @@ function _createSource(args, jsonObj, videoElement, callback)
         };
 
         // make byte stream
-        obj["stream"] = newByteStream(args.jsonPath, jsonObj[1], initEventObj());
-        // obj.stream.preload();
+        var userEvents = args.events || initEventObj()
+        obj["stream"] = newByteStream(args.jsonPath, jsonObj[1], userEvents);
 
         _dlMoov(args, obj, callback);
     });
@@ -73,7 +96,7 @@ function _dlMoov(args, obj, callback, retry=5)
     {
         if(retry < 0)
         {
-            callback(null);
+            callback(streamError("Failed to download moov box."));
         }
         else
         {
@@ -108,7 +131,7 @@ function _makeMux(args, obj, moov, callback)
 
     var failure = function()
     {
-        callback(null);
+        callback(streamError("MP4 worker error."));
     };
 
     spawnMp4Worker(moov, success, failure);

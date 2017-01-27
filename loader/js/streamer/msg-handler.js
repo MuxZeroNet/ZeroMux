@@ -59,16 +59,21 @@ function spawnMp4Worker(moovBox, callback, failure)
 
     simplerWorker(scriptPath + "/mp4worker.js", function(worker)
     {
-        _workerMade(worker, absDeps, moovBox, callback, failure)
+        _workerMade(worker, absDeps, moovBox, callback, failure);
     });
 }
 
 function _workerMade(worker, absDeps, moovBox, callback, failure)
 {
-    worker.onerror = function (e)
+    var logWorkerError = function (e)
     {
         console.error("Worker Error: "
             + e.filename + " Line " + e.lineno + ":\n" + e.message);
+    };
+    worker.onerror = function(e)
+    {
+        logWorkerError(e);
+        failure();
     };
 
     worker.onmessage = function(e)
@@ -87,6 +92,7 @@ function _workerMade(worker, absDeps, moovBox, callback, failure)
             {
                 // worker initialized
                 worker.onmessage = null;
+                worker.onerror = logWorkerError;
                 callback(worker);
             }
         }
@@ -121,9 +127,8 @@ function pipeToBuffer(worker, stream, mediaSource, sourceBuffer, fnCurrentTime, 
     var endSource = function()
     {
         console.log("MSE stream ended.");
-        // TODO: keep _blockingAppend running.
+        // keep _blockingAppend running.
         // Don't append, but should handle seek
-        streamEnded = true;
         next(true);
     };
 
