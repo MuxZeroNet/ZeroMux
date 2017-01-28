@@ -98,6 +98,9 @@ function loadSamples()
     videoSamples = sampleInfoList[vIndex];
     audioSamples = sampleInfoList[aIndex];
 
+    console.info("Time scales:\n" + 
+        "v=" + videoSamples.timeScale + " a=" + audioSamples.timeScale);
+
     kfList = KeyFrameList(videoSamples);
 
     maxVideoSample = GetMaxSampleNumber(videoSamples);
@@ -158,7 +161,7 @@ function writeFragment(fileInfo)
     }
 
     // video
-    var fromFrame = kfList[i];
+    var fromFrame = kfList[i]; // find a key frame
     var toFrame = (i < kfList.length - 1) ? (kfList[i+1] - 1) : maxVideoSample;
 
     var toVideoSt = FindItemInTable(toFrame, videoSamples.table);

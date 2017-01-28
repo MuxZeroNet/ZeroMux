@@ -107,6 +107,9 @@ function _workerMade(worker, absDeps, moovBox, callback, failure)
 
 function pipeToBuffer(worker, stream, mediaSource, sourceBuffer, fnCurrentTime, fnRanges)
 {
+    var nextDecision = "next";
+    var failedBuffer = null;
+
     var next = function(streamEnded=false)
     {
         _blockingAppend(worker, fnCurrentTime, fnRanges, streamEnded);
@@ -115,13 +118,48 @@ function pipeToBuffer(worker, stream, mediaSource, sourceBuffer, fnCurrentTime, 
     var appendAndNext = function(buffer)
     {
         console.log("appending buffer");
-        sourceBuffer.appendBuffer(buffer);
+        try
+        {
+            nextDecision = "next";
+            sourceBuffer.appendBuffer(buffer);
+        }
+        catch(error)
+        {
+            if(error.name == "QuotaExceededError")
+            {
+                console.warn("Quota Exceeded. Removing data...");
+                failedBuffer = buffer;
+                nextDecision = "retry";
+
+                var start = 0;
+                var end = fnCurrentTime() - 5;
+                if (start < end)
+                {
+                    sourceBuffer.remove(start, end);
+                }
+                else
+                {
+                    console.log("WTF");
+                }
+                
+            }
+        }        
     };
 
     sourceBuffer.addEventListener('updateend', function(e)
     {
         console.log("update end");
-        next();
+
+        if(nextDecision == "next")
+        {
+            failedBuffer = null;
+            next();
+        }
+        else if(nextDecision == "retry")
+        {
+            console.log("Retrying append buffer")
+            appendAndNext(failedBuffer);
+        }
     });
 
     var endSource = function()

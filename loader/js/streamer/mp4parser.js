@@ -314,6 +314,21 @@ function ExtractDuration(mvhdBox)
 
 }
 
+function ExtractTimeScale(mdhdBox)
+{
+    var contentStream = newFileInfo(mdhdBox["content"].buffer);
+
+    if (mdhdBox["version"] == 1)
+    {
+        throw "mdhd box: version 1 is not implemented";
+    }
+    
+    // skip other fields
+    contentStream.read(8);
+
+    return contentStream.readI();
+}
+
 function GetSampleTable(sampleInfo)
 {
     var maxChunkNumber = GetMaxChunkNumber(sampleInfo);
@@ -366,6 +381,7 @@ function ParseSamples(trakBox)
 
     var trackHeaderBox =     FindBox("tkhd", trakBox, true)[0];
     var handlerBox =         FindBox("hdlr", mdiaBox, true)[0];
+    var mediaHeaderBox =     FindBox("mdhd", mdiaBox, true)[0];
 
     var sampleInfo = {};
 
@@ -385,6 +401,9 @@ function ParseSamples(trakBox)
     // codec information
     var trackId = ExtractTrackId(trackHeaderBox);
     var handlerString = ExtractHandler(handlerBox);
+
+    var timeScale = ExtractTimeScale(mediaHeaderBox);
+
     var keyframeNumberList = null;
     if (syncSampleBox != null)
     {
@@ -400,6 +419,7 @@ function ParseSamples(trakBox)
 
     sampleInfo.trackId = trackId;
     sampleInfo.handlerString = handlerString;
+    sampleInfo.timeScale = timeScale;
     sampleInfo.keyframeNumberList = keyframeNumberList;
 
     sampleInfo.table = GetSampleTable(sampleInfo);
