@@ -7,8 +7,8 @@ function ReadBox(fileInfo, fullBox=false, skipContent=false)
         return null; // EOF or no enough data
     }
 
-    //sizeBytes = fileInfo.read(4)
-    //boxSize = struct.unpack(">I", sizeBytes)[0]
+    // sizeBytes = fileInfo.read(4)
+    // boxSize = struct.unpack(">I", sizeBytes)[0]
     var boxSize = fileInfo.readI();
 
     if (boxSize < 8)
@@ -36,7 +36,7 @@ function ReadBox(fileInfo, fullBox=false, skipContent=false)
         }
         else
         {
-            //boxVersion, boxFlags = struct.unpack(">B3s", fileInfo.read(4))
+            // boxVersion, boxFlags = struct.unpack(">B3s", fileInfo.read(4))
             var boxVersion = fileInfo.readB();
             var boxFlags = fileInfo.read(3);
 
@@ -72,8 +72,6 @@ function FindBox(boxType, boxInfo, fullBox=false)
         box = ReadBox(boxContentStream, fullBox);
     }
 
-    //boxContentStream.close()
-
     if (boxList.length == 0)
     {
         boxList.push(null);
@@ -82,14 +80,15 @@ function FindBox(boxType, boxInfo, fullBox=false)
     return boxList;
 }
 
-
+// returns a list of chunk offsets
+// all offsets are absolute
 function ParseStcoBox(stcoBox)
 {
     var absoluteChunkOffsetList = [];
 
     var contentStream = newFileInfo(stcoBox["content"].buffer);
 
-    //entryCount = struct.unpack(">I", contentStream.read(4))[0]
+    // entryCount = struct.unpack(">I", contentStream.read(4))[0]
     var entryCount = contentStream.readI();
 
     if (4 + 4*entryCount != stcoBox["content"].length)
@@ -97,10 +96,10 @@ function ParseStcoBox(stcoBox)
         throw "stco box corrupted: no enough data";
     }
 
-    //for i in range(entryCount):
+    // for i in range(entryCount):
     for(var i = 0; i < entryCount; i++)
     {
-        //absoluteChunkOffset = struct.unpack(">I", contentStream.read(4))[0]
+        // absoluteChunkOffset = struct.unpack(">I", contentStream.read(4))[0]
         var absoluteChunkOffset = contentStream.readI(4);
         absoluteChunkOffsetList.push(absoluteChunkOffset);
     }
@@ -108,14 +107,15 @@ function ParseStcoBox(stcoBox)
     return absoluteChunkOffsetList;
 }
 
+// returns [[first chunk number, samples per chunk, description index]]
 function ParseStscBox(stscBox)
 {
     var sampleCounts = [];
 
-    //contentStream = io.BytesIO(stscBox["content"])
+    // contentStream = io.BytesIO(stscBox["content"])
     var contentStream = newFileInfo(stscBox["content"].buffer);
 
-    //entryCount = struct.unpack(">I", contentStream.read(4))[0]
+    // entryCount = struct.unpack(">I", contentStream.read(4))[0]
     var entryCount = contentStream.readI();
 
     if (4 + 12*entryCount != stscBox["content"].length)
@@ -123,11 +123,11 @@ function ParseStscBox(stscBox)
         throw "stsc box corrupted: no enough data";
     }
 
-    //for i in range(entryCount)
+    // for i in range(entryCount)
     for(var i = 0; i < entryCount; i++)
     {
         // ("firstChunk (Number)", "samplesPerChunk", "descriptionIndex")
-        //items = struct.unpack(">III", contentStream.read(12)) // 3 items
+        // items = struct.unpack(">III", contentStream.read(12)) // 3 items
         var f = contentStream.readI();
         var s = contentStream.readI();
         var d = contentStream.readI();
@@ -138,11 +138,12 @@ function ParseStscBox(stscBox)
     return sampleCounts;
 }
 
+// returns [constant sample size, sample size list]
 function ParseStszBox(stszBox)
 {
     var contentStream = newFileInfo(stszBox["content"].buffer);
 
-    //sampleSize, sampleCount = struct.unpack(">II", contentStream.read(8))
+    // sampleSize, sampleCount = struct.unpack(">II", contentStream.read(8))
     var sampleSize = contentStream.readI();
     var sampleCount = contentStream.readI();
     if(sampleSize > 0)
@@ -158,10 +159,10 @@ function ParseStszBox(stszBox)
 
     var sampleSizeList = [];
 
-    //for i in range(sampleCount):
+    // for i in range(sampleCount):
     for(var i = 0; i < sampleCount; i++)
     {
-        //thisSampleSize = struct.unpack(">I", contentStream.read(4))[0]
+        // thisSampleSize = struct.unpack(">I", contentStream.read(4))[0]
         var thisSampleSize = contentStream.readI();
         sampleSizeList.push(thisSampleSize);
     }
@@ -169,6 +170,7 @@ function ParseStszBox(stszBox)
     return [0, sampleSizeList];
 }
 
+// returns [[sampleCount, duration]]
 function ParseSttsBox(sttsBox)
 {
     var contentStream = newFileInfo(sttsBox["content"].buffer);
@@ -182,10 +184,10 @@ function ParseSttsBox(sttsBox)
 
     var countDeltaTuples = [];
 
-    //for i in range(entryCount):
+    // for i in range(entryCount):
     for(var i = 0; i < entryCount; i++)
     {
-        //sampleCount, sampleDelta = struct.unpack(">II", contentStream.read(8))
+        // sampleCount, sampleDelta = struct.unpack(">II", contentStream.read(8))
         var sampleCount = contentStream.readI();
         var sampleDelta = contentStream.readI();
 
@@ -195,6 +197,7 @@ function ParseSttsBox(sttsBox)
     return countDeltaTuples;
 }
 
+// returns [[sampleCount, timeOffset]]
 function ParseCttsBox(cttsBox)
 {
     if (cttsBox["version"] != 0)
@@ -226,6 +229,7 @@ function ParseCttsBox(cttsBox)
     return countOffsetTuples;
 }
 
+// returns a list of key frame numbers
 function ParseStssBox(stssBox)
 {
     var contentStream = newFileInfo(stssBox["content"].buffer);
@@ -310,8 +314,42 @@ function ExtractDuration(mvhdBox)
 
 }
 
+function GetSampleTable(sampleInfo)
+{
+    var maxChunkNumber = GetMaxChunkNumber(sampleInfo);
+    var results = [];
 
-function ExtractSamplePointers(trakBox)
+    var prevSum = 0
+    var cacheChunkNumber = 1;
+    var cacheChunkInfoIndex = 0;
+
+    // for number in range(1, maxChunkNumber+1):
+    for (var number = 1; number < maxChunkNumber+1; number++)
+    {
+        // sample = GetChunkFirstSampleNumberM(number, sampleInfo, \
+        //     startChunkNumber=cacheChunkNumber, prevSum=prevSum)
+        var sample = GetChunkFirstSampleNumberM(number, sampleInfo, cacheChunkNumber, prevSum);
+        // number is chunk number
+
+        // size = GetChunkLength(number, sampleInfo, firstSampleNum=sample)
+        var size = GetChunkLength(number, sampleInfo, null, sample);
+
+        // cacheChunkInfoIndex, sampleCount, d = \
+        //     GetChunkInfo(number, sampleInfo, startIndex=cacheChunkInfoIndex)
+        var csd = GetChunkInfo(number, sampleInfo, cacheChunkInfoIndex);
+        cacheChunkInfoIndex = csd[0]; // CACHE!
+        var sampleCount = csd[1];
+
+        results.push([number, size, sample, sampleCount]);
+
+        cacheChunkNumber = number; // CACHE!
+        prevSum = sample - 1; // CACHE!
+    }
+    return results;
+}
+
+
+function ParseSamples(trakBox)
 {
     var mdiaBox = FindBox("mdia", trakBox)[0];
     var minfBox = FindBox("minf", mdiaBox)[0];
@@ -353,26 +391,6 @@ function ExtractSamplePointers(trakBox)
         keyframeNumberList = ParseStssBox(syncSampleBox);
     }
 
-
-
-    sampleInfo["offsetInfo"] = {
-        "chunkOffsetList": chunkOffsetList,
-        "sampleCountEntries": sampleCountEntries, //stsc
-        "sampleSizeInfo": sampleSizeInfo, //stsz
-    };
-
-    sampleInfo["timestampInfo"] = {
-        "dtDeltaEntries": dtDeltaEntries,
-        "ctOffsetEntries": ctOffsetEntries,
-    };
-
-    sampleInfo["codecInfo"] = {
-        "trackId": trackId,
-        "handlerString": handlerString,
-        "keyframeNumberList": keyframeNumberList,
-    };
-
-    // Why a second level?
     sampleInfo.chunkOffsetList = chunkOffsetList;
     sampleInfo.sampleCountEntries = sampleCountEntries; // in stsc
     sampleInfo.sampleSizeInfo = sampleSizeInfo; // in stsz
@@ -383,6 +401,8 @@ function ExtractSamplePointers(trakBox)
     sampleInfo.trackId = trackId;
     sampleInfo.handlerString = handlerString;
     sampleInfo.keyframeNumberList = keyframeNumberList;
+
+    sampleInfo.table = GetSampleTable(sampleInfo);
 
     return sampleInfo;
 }

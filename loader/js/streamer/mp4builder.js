@@ -540,11 +540,11 @@ function DecideSampleFlags(isSync, handler)
 
     if (isSync)
     {
-        console.log("Decide sample flags: A key frame!");
         return 0x02000000; // 4 bytes. depends_on=2
     }
     else
     {
+        console.log("Decide sample flags: A non key frame!");
         return 0x01010000; // 4 bytes. non_sync=1, depends_on=1
     }
 }
@@ -690,7 +690,7 @@ function ReadRaw(chunkOffset, chunkSize, fileStream)
     return chunkContent;
 }
 
-function GetFrameData(from_Frame, to_Frame, sampleTable, sampleInfo, fileStream)
+function GetFrameData(from_Frame, to_Frame, sampleInfo, fileStream)
 {
     // (chunk number, chunk size, first sample, sample count)
     var data = new Uint8Array(0);
@@ -698,7 +698,7 @@ function GetFrameData(from_Frame, to_Frame, sampleTable, sampleInfo, fileStream)
 
     while (startFrame <= to_Frame)
     {
-        var item = FindItemInTable(startFrame, sampleTable);
+        var item = FindItemInTable(startFrame, sampleInfo.table);
 
         //chunkNumber, chunkSize, firstSample, sampleCount = sampleTableItem;
         var chunkNumber = item[0];

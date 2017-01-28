@@ -22,7 +22,7 @@ function loadMoov(moovBoxBytes)
 
     for (trakBox of tracks)
     {
-        var sampleInfo = ExtractSamplePointers(trakBox);
+        var sampleInfo = ParseSamples(trakBox);
         // extract `sampleInfo` in this track.
         sampleInfoList.push(sampleInfo);
         // remember it
@@ -77,11 +77,8 @@ function loadMoov(moovBoxBytes)
 vIndex = null;
 aIndex = null;
 
-videoSampleInfo = null;
-videoSampleTable = null;
-
-audioSampleInfo = null;
-audioSampleTable = null;
+videoSamples = null;
+audioSamples = null;
 
 kfList = null;
 
@@ -98,16 +95,13 @@ function loadSamples()
     vIndex = TrackIndex(handlerList, "vide");
     aIndex = TrackIndex(handlerList, "soun");
 
-    videoSampleInfo = sampleInfoList[vIndex];
-    videoSampleTable = GetSampleTable(videoSampleInfo);
+    videoSamples = sampleInfoList[vIndex];
+    audioSamples = sampleInfoList[aIndex];
 
-    audioSampleInfo = sampleInfoList[aIndex];
-    audioSampleTable = GetSampleTable(audioSampleInfo);
+    kfList = KeyFrameList(videoSamples);
 
-    kfList = GetKeyFrameList(videoSampleInfo);
-
-    maxVideoSample = GetMaxSampleNumber(videoSampleInfo);
-    maxAudioSample = GetMaxSampleNumber(audioSampleInfo);
+    maxVideoSample = GetMaxSampleNumber(videoSamples);
+    maxAudioSample = GetMaxSampleNumber(audioSamples);
 
     videoTrackId = trackIdList[vIndex];
     audioTrackId = trackIdList[aIndex];
@@ -167,9 +161,9 @@ function writeFragment(fileInfo)
     var fromFrame = kfList[i];
     var toFrame = (i < kfList.length - 1) ? (kfList[i+1] - 1) : maxVideoSample;
 
-    var toVideoSt = FindItemInTable(toFrame, videoSampleTable);
+    var toVideoSt = FindItemInTable(toFrame, videoSamples.table);
     var toVideoChunk = toVideoSt[0];
-    var toVideoChunkOffset = GetChunkOffset(toVideoChunk, videoSampleInfo);
+    var toVideoChunkOffset = GetChunkOffset(toVideoChunk, videoSamples);
 
 
     // wait until the whole chunk is loaded
@@ -188,8 +182,9 @@ function writeFragment(fileInfo)
     var vMoof_vMdat = BuildFragment(
         fromFrame, toFrame,
         videoTrackId, "vide",
-        videoSampleTable, videoSampleInfo,
-        fileInfo, i*2 + 1);
+        videoSamples,
+        fileInfo, i*2 + 1
+    );
 
     if (vMoof_vMdat == null)
     {
@@ -205,7 +200,7 @@ function writeFragment(fileInfo)
 
     // audio
     var audioToFrame = (i < kfList.length - 1)
-        ? GetAudioFrameEnd(toVideoChunkOffset, audioSampleTable, audioSampleInfo)
+        ? GetAudioFrameEnd(toVideoChunkOffset, audioSamples)
         : maxAudioSample; // all audio frames before that video frame
 
     console.log("video: from " + fromFrame + " to " + toFrame);
@@ -221,8 +216,9 @@ function writeFragment(fileInfo)
     var aMoof_aMdat = BuildFragment(
         audioFromFrame, audioToFrame,
         audioTrackId, "soun",
-        audioSampleTable, audioSampleInfo,
-        fileInfo, i*2 + 2);
+        audioSamples,
+        fileInfo, i*2 + 2
+    );
 
     if (aMoof_aMdat == null)
     {
@@ -246,7 +242,7 @@ function writeFragment(fileInfo)
 }
 
 
-function BuildFragment(fromFrame, toFrame, trackId, handler, sampleTable, sampleInfo, fileInfo, seqNumber)
+function BuildFragment(fromFrame, toFrame, trackId, handler, sampleInfo, fileInfo, seqNumber)
 {
     var moof = MakeNewMoof(trackId, handler,
                            fromFrame, toFrame,
@@ -254,7 +250,7 @@ function BuildFragment(fromFrame, toFrame, trackId, handler, sampleTable, sample
     // build moof
     // fileInfo is not required
 
-    var data = GetFrameData(fromFrame, toFrame, sampleTable, sampleInfo, fileInfo);
+    var data = GetFrameData(fromFrame, toFrame, sampleInfo, fileInfo);
 
     if (data == null)
     {
@@ -270,19 +266,19 @@ function BuildFragment(fromFrame, toFrame, trackId, handler, sampleTable, sample
     return [moofBytes, mdatBytes];
 }
 
-function GetKeyFrameList(sampleInfo)
+function KeyFrameList(sampleInfo)
 {
     return sampleInfo.keyframeNumberList;
 }
 
-function GetAudioFrameEnd(beforeOffset, audioSampleTable, audioSampleInfo)
+function GetAudioFrameEnd(beforeOffset, audioSamples)
 {
-    audioChunkNumber = FirstChunkBeforeOffset(beforeOffset, audioSampleInfo);
+    audioChunkNumber = FirstChunkBeforeOffset(beforeOffset, audioSamples);
     if (audioChunkNumber < 0)
     {
         return -1;
     }
-    tableItem = audioSampleTable[audioChunkNumber-1];
+    tableItem = audioSamples.table[audioChunkNumber-1];
 
     firstSample = tableItem[2];
     sampleCount = tableItem[3];
@@ -417,7 +413,7 @@ function handleMp4(args)
 }
 
 
-function writeNextFragment(f)
+function writeNextFragment(fileInfo)
 {
     // buffer, beginOffset
     // writeFragment
@@ -430,7 +426,6 @@ function writeNextFragment(f)
         return;
     }
 
-    var fileInfo = f;
     var bytesToWrite = writeFragment(fileInfo);
     // It will NOT signal the main thread.
 

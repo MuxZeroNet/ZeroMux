@@ -241,39 +241,7 @@ function GetSampleTimestamp(number, sampleInfo)
     return [dtSum, ctts];
 }
 
-function GetSampleTable(sampleInfo)
-{
-    var maxChunkNumber = GetMaxChunkNumber(sampleInfo);
-    var results = [];
 
-    var prevSum = 0
-    var cacheChunkNumber = 1;
-    var cacheChunkInfoIndex = 0;
-
-    //for number in range(1, maxChunkNumber+1):
-    for (var number = 1; number < maxChunkNumber+1; number++)
-    {
-        //sample = GetChunkFirstSampleNumberM(number, sampleInfo, \
-        //    startChunkNumber=cacheChunkNumber, prevSum=prevSum)
-        var sample = GetChunkFirstSampleNumberM(number, sampleInfo, cacheChunkNumber, prevSum);
-        // number is chunk number
-
-        //size = GetChunkLength(number, sampleInfo, firstSampleNum=sample)
-        var size = GetChunkLength(number, sampleInfo, null, sample);
-
-        //cacheChunkInfoIndex, sampleCount, d = \
-        //    GetChunkInfo(number, sampleInfo, startIndex=cacheChunkInfoIndex)
-        var csd = GetChunkInfo(number, sampleInfo, cacheChunkInfoIndex);
-        cacheChunkInfoIndex = csd[0]; // CACHE!
-        var sampleCount = csd[1];
-
-        results.push([number, size, sample, sampleCount]);
-
-        cacheChunkNumber = number; // CACHE!
-        prevSum = sample - 1; // CACHE!
-    }
-    return results;
-}
 
 function FirstChunkAfterOffset(offset, sampleInfo)
 {
