@@ -16,7 +16,7 @@ def Main():
         "wizard.py -i \"D:\\My Documents\\01.mp4\"",
         "          -out_dir \"E:\\MySite\\loader\\files\"",
         "          -chunk_size 500",
-        "          -rel_path \"files/yosuga_no_sora\"",
+        "          -container \"yosuga_no_sora\"",
         "          -name \"Yosuga no Sora.mp4\"",
         "",
         "Say you uploaded an MP4 file by using an old version of ZeroMux,",
@@ -39,17 +39,22 @@ def Main():
 
     parser.add_argument("-i", action="store", dest="input", help="file to split")
     parser.add_argument("-out_dir", action="store", dest="folder", \
-        help="""output directory. Note that a new folder will be created
+        help="""output directory. Note that a new folder (called container folder) will be created
         in the specified directory to store the chunks.""")
 
     parser.add_argument("-chunk_size", action="store", dest="size_kb", type=int, \
         help="""[optional] chunk size in KB.
         If not specified, a reasonable value will be calculated and chosen.""")
 
-    parser.add_argument("-rel_path", action="store", dest="rel_path", \
-        help="""[optional] relative folder path with respect to __file loading page__.
+    parser.add_argument("-rel_path", action="store", dest="relative_path", \
+        help="""[DEPRECATED] [optional] relative folder path with respect to __file loading page__.
         (e.g. http://zero.net/1YourSite/loader/files/big_file/*.dat => -rel_path \"files/big_file\")
         Specifying rel_path will also change the name of the new folder created.""")
+    parser.add_argument("-container", action="store", dest="container_name", \
+        help="""[optional] specify the folder name that is used to contain the file chunks.
+        If the specified folder exists, a new folder name will be chosen automatically.
+        Illegal chars in specified folder name will
+        be replaced with underlines (_)""")
     parser.add_argument("-name", action="store", dest="name", \
         help="[optional] specify a friendly file name to be displayed")
 
@@ -63,7 +68,7 @@ def Main():
     if args.input and args.moov_path:
         MoovMain(args.input, args.moov_path)
     else:
-        CliMain(args.input, args.folder, args.size_kb, args.rel_path, args.name)
+        CliMain(args.input, args.folder, args.size_kb, args.relative_path, args.container_name, args.name)
 
 def MoovMain(input_file, out_file):
     if not os.path.isfile(input_file):
@@ -81,10 +86,10 @@ def MoovMain(input_file, out_file):
     else:
         print "[!] No moov box was saved."
 
-def CliMain(input_file, out_folder, size_kb, rel_path, friendly_name):
-    if not os.path.isfile(input_file):
+def CliMain(input_file, out_folder, size_kb, rel_path, container_name, friendly_name):
+    if not input_file or not os.path.isfile(input_file):
         raise Exception("Input File does not exist.")
-    if not os.path.isdir(out_folder):
+    if not out_folder or not os.path.isdir(out_folder):
         raise Exception("Out Folder does not exist.")
     if size_kb != None:
         if size_kb <= 1:
@@ -102,8 +107,8 @@ def CliMain(input_file, out_folder, size_kb, rel_path, friendly_name):
     chosen_folder_name = ""
     if not rel_path:
         input_file_name = os.path.basename(input_file)
-        chosen_folder_name = CorrectFolderName(input_file_name, out_folder, input_file_name)
-        rel_path = "files/" + chosen_folder_name
+        desired_folder_name = container_name or input_file_name
+        chosen_folder_name = CorrectFolderName(desired_folder_name, out_folder, input_file_name)
     else:
         rel_path = rel_path.replace("\\", "/").strip()
         if rel_path.endswith("/"):
@@ -114,15 +119,15 @@ def CliMain(input_file, out_folder, size_kb, rel_path, friendly_name):
     if os.path.exists(chunk_folder):
         raise Exception("Failed to assign chunk folder name - folder already exists.")
 
-    if not friendly_name:
+    if not friendly_name or not friendly_name.strip():
         friendly_name = os.path.basename(input_file) or "no_name"
 
     print "\n".join([
         "Using arguments:",
         "Input file: " + input_file,
         "Output directory for chunks: " + chunk_folder + "/",
-        "Chunk size: " + str(1.0*size_bytes/1024) + "KB",
-        "Relative path: " + rel_path,
+        "Chunk size: " + "%.2f" % (1.0*size_bytes/1024) + "KB",
+        "Relative path: " + (rel_path or ". (chdir)"),
         "Friendly name: " + friendly_name,
         "",
     ])

@@ -31,7 +31,7 @@ MDN wiki editors wrote about [inline Web Workers](https://developer.mozilla.org/
 
 Firefox renders Remote XUL Error when it tries to pop up a dialog from an iframe sandbox. This [Firefox bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1313268) will be fixed in Firefox 52. ZeroMux still works in Firefox, except Firefox assigns random names to files.
 
-Google Chrome refuses to load any Media Source URL in an iframe sandbox. This [Chromium bug](https://bugs.chromium.org/p/chromium/issues/detail?id=379206) was reported in 2014, but remains unfixed for more than 2 years. WebTorrent is also [affected](https://github.com/feross/webtorrent/issues/783) by this bug. Video streaming does not work in Google Chrome unless this bug is fixed.
+Google Chrome refuses to load any Media Source URL in an iframe sandbox. This [Chromium bug](https://bugs.chromium.org/p/chromium/issues/detail?id=686516) was actually [reported in 2014](https://bugs.chromium.org/p/chromium/issues/detail?id=379206), but remains unfixed for more than 2 years. WebTorrent is also [affected](https://github.com/feross/webtorrent/issues/783) by this bug. Video streaming does not work in Google Chrome unless this bug is fixed.
 
 ## Ways to Help
 You can make ZeroMux project better by simply:
@@ -42,7 +42,7 @@ You can also help the ZeroNet community by seeding the files you like from some 
 
 You can help us test [I2P support](https://github.com/HelloZeroNet/ZeroNet/issues/45), so that we can have even more seeders in the future.
 
-There are some browser bugs which ZeroNet developers are unable to fix. You can help us persuade Chromium developers that [blocking `blob:null/` in an iframe sandbox](https://bugs.chromium.org/p/chromium/issues/detail?id=379206) should be considered as a bug, not a feature. This long standing bug prevents MSE APIs from working properly in an iframe sandbox.
+There are some browser bugs which ZeroNet developers are unable to fix. You can [star this ZeroNet-related Chromium issue](https://bugs.chromium.org/p/chromium/issues/detail?id=686516). This long standing bug prevents MSE APIs from working properly in an iframe sandbox.
 
 You can also donate to [ZeroNet](https://github.com/HelloZeroNet/ZeroNet) and help keep both projects alive.
 

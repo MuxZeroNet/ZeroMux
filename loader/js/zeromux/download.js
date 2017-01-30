@@ -24,7 +24,7 @@ function downloadBigFile(jsonPath, events)
 {
     var callback = function(xmlHttp)
     {
-        handleJsonData(xmlHttp, events)
+        handleJsonData(xmlHttp, jsonPath, events)
     };
 
     var failure = function(xmlHttp, reason)
@@ -38,12 +38,12 @@ function downloadBigFile(jsonPath, events)
 
 
 
-function handleJsonData(xmlHttp, events)
+function handleJsonData(xmlHttp, jsonPath, events)
 {
     var a = null;
     try
     {
-        a = readFileJson(xmlHttp.responseText);
+        a = readFileJson(xmlHttp.responseText, jsonPath);
     }
     catch(e)
     {

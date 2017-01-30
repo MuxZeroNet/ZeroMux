@@ -592,7 +592,8 @@ def HandleFileInput(file_path, given_file_name, folder_name, existing_ids):
     # start splitting file, writing file.json
     ideal_chunk_size = ChooseChunkSize(os.path.getsize(file_path))
     os.mkdir(save_to_folder)
-    SplitFile(file_path, save_to_folder, "files/" + safe_folder_name, given_file_name, ideal_chunk_size)
+    # SplitFile(file_path, save_to_folder, "files/" + safe_folder_name, given_file_name, ideal_chunk_size)
+    SplitFile(file_path, save_to_folder, None, given_file_name, ideal_chunk_size)
 
     # start saving data for media streaming
     has_metadata = SaveStreamingData(file_path, save_to_folder)

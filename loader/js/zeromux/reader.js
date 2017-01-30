@@ -1,11 +1,11 @@
-function readFileJson(jsonContent)
+function readFileJson(jsonContent, jsonPath)
 {
     var jsonObject = JSON.parse(jsonContent);
     
     var bigFileInfo = readBigFileInfo(jsonObject["bigFile"]);
     var fileParts = readFilePartArray(jsonObject["fileParts"]);
     
-    checkBoth(bigFileInfo, fileParts);
+    checkBoth(bigFileInfo, fileParts, jsonPath);
     
     return [bigFileInfo, fileParts];
 }
@@ -17,6 +17,8 @@ function readBigFileInfo(bigFileObject)
     bigFileInfo["fileName"] = String(bigFileObject["fileName"]);
     
     bigFileInfo["size"] = parseInt(bigFileObject["size"]);
+
+    bigFileInfo["cd"] = String(bigFileObject["cd"]);
     
     bigFileInfo["hashingAlgorithm"] = bigFileObject["hashingAlgorithm"].toLowerCase();
     bigFileInfo["hash"] = bigFileObject["hash"].toLowerCase();
@@ -43,7 +45,7 @@ function readFilePartArray(filePartArray)
         
         filePartInfo["hashingAlgorithm"] = item["hashingAlgorithm"].toLowerCase();
         filePartInfo["hash"] = item["hash"].toLowerCase();
-        
+
         checkFilePartInfo(filePartInfo);
         fileParts.push(filePartInfo);
     }
@@ -98,7 +100,7 @@ function isHashSafe(hashingAlgorithm, hash)
     return true;
 }
 
-function checkBoth(bigFileInfo, parts)
+function checkBoth(bigFileInfo, parts, jsonPath)
 {
     var fileSize1 = bigFileInfo["size"];
     var fileSize2 = sum(parts.map(item => item["size"]));
@@ -113,8 +115,25 @@ function checkBoth(bigFileInfo, parts)
             throw "Order Error!";
         }
     }
+
+
+    if(bigFileInfo["cd"] == "json" && jsonPath != null)
+    {
+        for(var item of parts)
+        {
+            item["path"] = changeToJsonDir(item["path"], jsonPath);
+        }
+    }
 }
 
+function changeToJsonDir(partPath, jsonPath)
+{
+    jsonPath = jsonPath.split("#")[0].split("?")[0];
+    var jsonPathParts = jsonPath.split("/");
+    jsonPathParts.pop();
+    jsonPathParts.push(partPath);
+    return jsonPathParts.join("/");
+}
 
 function assert(condition, errorMessage)
 {

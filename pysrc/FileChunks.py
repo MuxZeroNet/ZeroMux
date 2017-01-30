@@ -128,7 +128,12 @@ def ChooseChunkSize(file_size):
     else:
         return chunk_size
 
-def SplitFile(filePath, savePath, relativePath, givenFileName, idealChunkSize=500*1024):
+def SplitFile(filePath, savePath, relPath, givenFileName, idealChunkSize=500*1024):
+    relativePath = relPath
+    if not relPath:
+        print "Using {\"cd\": \"json\"} ..."
+        relativePath = "."
+
     fileSize = os.path.getsize(filePath)
 
     filePartList = []
@@ -181,6 +186,9 @@ def SplitFile(filePath, savePath, relativePath, givenFileName, idealChunkSize=50
         "hash": wholeFileSha256
     }
 
+    if not relPath:
+        bigFileDict["cd"] = "json"
+
     jsonContent = {
         "bigFile": bigFileDict,
         "fileParts": filePartList
@@ -196,7 +204,7 @@ def SplitFile(filePath, savePath, relativePath, givenFileName, idealChunkSize=50
 def SaveMetadataFile(metadata, out_folder):
     if len(metadata) > 0:
         print "Saving %s/metadata.json ..." % out_folder
-        
+
         file_info = io.open(out_folder + "/metadata.json", 'w', encoding='utf-8')
         file_info.write( unicode(json.dumps(metadata)) )
         file_info.flush()
