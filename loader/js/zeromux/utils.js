@@ -144,6 +144,7 @@ function requestAsync(url, minetype, responseType, callback, failure)
     xmlHttp.open("GET", url, true);
 
     xmlHttp.timeout = 20000;
+    xmlHttp.useCredentials = true;
 
     if (minetype != null)
     {
@@ -179,4 +180,14 @@ function requestBinary(url, responseType, callback, failure)
 function unbind(element)
 {
     element.parentNode.replaceChild(element.cloneNode(true), element);
+}
+
+function noCacheQueries()
+{
+    return dummyQueries();
+}
+
+function dummyQueries()
+{
+    return "_r=_0.1.4_" + Math.random();
 }

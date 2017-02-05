@@ -1,7 +1,3 @@
-function dummyQueries()
-{
-    return "_r=_0.1.3_" + Math.random();
-}
 
 function dealWithFailure(reason)
 {

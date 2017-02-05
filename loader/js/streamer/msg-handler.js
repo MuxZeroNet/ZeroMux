@@ -38,15 +38,11 @@ function needAppending(currentTime, bufferedRanges)
             return "seek";
         }
     }
-    
+
     return "append";
-    
+
 }
 
-function dummyQueries()
-{
-    return "_r=" + Math.random();
-}
 
 function spawnMp4Worker(moovBox, callback, failure)
 {
@@ -141,9 +137,9 @@ function pipeToBuffer(worker, stream, mediaSource, sourceBuffer, fnCurrentTime, 
                 {
                     console.log("WTF");
                 }
-                
+
             }
-        }        
+        }
     };
 
     sourceBuffer.addEventListener('updateend', function(e)

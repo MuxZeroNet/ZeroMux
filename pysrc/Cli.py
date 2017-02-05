@@ -110,9 +110,9 @@ def CliMain(input_file, out_folder, size_kb, rel_path, container_name, friendly_
         desired_folder_name = container_name or input_file_name
         chosen_folder_name = CorrectFolderName(desired_folder_name, out_folder, input_file_name)
     else:
+        print "[WARNING] Using deprecated -rel_path argument"
         rel_path = rel_path.replace("\\", "/").strip()
-        if rel_path.endswith("/"):
-            rel_path = rel_path[0:-1]
+        rel_path = rel_path.rstrip("/")
         chosen_folder_name = os.path.basename(rel_path)
 
     chunk_folder = out_folder + "/" + chosen_folder_name

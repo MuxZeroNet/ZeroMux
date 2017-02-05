@@ -4,9 +4,9 @@ ZeroMux is a file sharing toolkit and site builder for [ZeroNet](https://zeronet
 ## Getting Started
 1. Download this repo, or if you prefer, get the pack at [ZeroMux Blog on ZeroNet](http://127.0.0.1:43110/1CiDoBP8RiWziqiBGEd8tQMy66A6fmnw2V/big/bundle/)
 2. Unpack and run `wizard.py`
-3. After you made changes to your file list, put the `loader` folder onto your site, or if you prefer, simply make a symbolic link:
+3. After you made changes to your file list, put the `loader` folder onto your site, or if you prefer, simply **move** your `loader` folder to your **site** directory and make a symbolic link:
 
-    `ZeroMux/loader -> data/1YourSite/loader`
+    `data/1YourSite/loader -> ZeroMux/loader`
 4. Sign and publish. Tell your friends to come visit your site.
 5. For instructions of how to configure your ZeroNet site, refer to [ZeroMux Docs on ZeroNet](http://127.0.0.1:43110/1CiDoBP8RiWziqiBGEd8tQMy66A6fmnw2V/big/docs/gentle-intro/) and read more about it.
 
@@ -32,6 +32,8 @@ MDN wiki editors wrote about [inline Web Workers](https://developer.mozilla.org/
 Firefox renders Remote XUL Error when it tries to pop up a dialog from an iframe sandbox. This [Firefox bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1313268) will be fixed in Firefox 52. ZeroMux still works in Firefox, except Firefox assigns random names to files.
 
 Google Chrome refuses to load any Media Source URL in an iframe sandbox. This [Chromium bug](https://bugs.chromium.org/p/chromium/issues/detail?id=686516) was actually [reported in 2014](https://bugs.chromium.org/p/chromium/issues/detail?id=379206), but remains unfixed for more than 2 years. WebTorrent is also [affected](https://github.com/feross/webtorrent/issues/783) by this bug. Video streaming does not work in Google Chrome unless this bug is fixed.
+
+Web Fonts are [required](https://www.w3.org/TR/css-fonts-3/#font-fetching-requirements) to be fetched Anonymously. This is a privacy-respecting design, but ZeroNet will not give you the right response if UiPassword plugin is enabled but you do not send a valid Cookie header. The UI may look not pretty when UiPassword plugin is enabled.
 
 ## Ways to Help
 You can make ZeroMux project better by simply:

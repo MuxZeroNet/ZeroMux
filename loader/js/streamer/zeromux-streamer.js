@@ -46,7 +46,7 @@ function downloadAndAttach(args, videoElement, cbFn)
     };
 
     // request JSON
-    requestText(args.jsonPath + "?" + dummyQueries(), "application/json", success, failure);
+    requestText(args.jsonPath + "?" + noCacheQueries(), "application/json", success, failure);
 }
 
 
@@ -108,7 +108,7 @@ function _dlMoov(args, obj, callback, retry=5)
         }
     };
 
-    requestBinary(args.moovPath + "?" + dummyQueries(), "arraybuffer", success, failure);
+    requestBinary(args.moovPath + "?" + noCacheQueries(), "arraybuffer", success, failure);
 }
 
 function _makeMux(args, obj, moov, callback)
