@@ -144,7 +144,7 @@ function requestAsync(url, minetype, responseType, callback, failure)
     xmlHttp.open("GET", url, true);
 
     xmlHttp.timeout = 20000;
-    xmlHttp.useCredentials = true;
+    // xmlHttp.useCredentials = true;
 
     if (minetype != null)
     {
