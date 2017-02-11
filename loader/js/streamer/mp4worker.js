@@ -81,6 +81,7 @@ videoSamples = null;
 audioSamples = null;
 
 kfList = null;
+seekTable = null;
 
 maxVideoSample = 0;
 maxAudioSample = 0;
@@ -98,10 +99,8 @@ function loadSamples()
     videoSamples = sampleInfoList[vIndex];
     audioSamples = sampleInfoList[aIndex];
 
-    console.info("Time scales:\n" + 
-        "v=" + videoSamples.timeScale + " a=" + audioSamples.timeScale);
-
     kfList = KeyFrameList(videoSamples);
+    seekTable = MakeSeekTable(videoSamples, audioSamples);
 
     maxVideoSample = GetMaxSampleNumber(videoSamples);
     maxAudioSample = GetMaxSampleNumber(audioSamples);
@@ -139,9 +138,9 @@ function writeHeader(fileInfo)
         throw "Cannot find ftyp box.";
     }
 
-    ftypBytes = PackBox(ftypBox);
+    var ftypBytes = PackBox(ftypBox);
 
-    workerState = "writingFragments";
+    // workerState = "writingFragments";
 
     var bytesToWrite = concatArrays(ftypBytes, newMoovBytes);
     return bytesToWrite; // init segment
@@ -274,20 +273,93 @@ function KeyFrameList(sampleInfo)
     return sampleInfo.keyframeNumberList;
 }
 
-function GetAudioFrameEnd(beforeOffset, audioSamples)
+function GetAudioFrameEnd(beforeOffset, audioSamples, chunkNumber=-1)
 {
-    audioChunkNumber = FirstChunkBeforeOffset(beforeOffset, audioSamples);
-    if (audioChunkNumber < 0)
+    if(chunkNumber < 0)
+    {
+        chunkNumber = FirstChunkBeforeOffset(beforeOffset, audioSamples);
+    }
+    if (chunkNumber < 0)
     {
         return -1;
     }
-    tableItem = audioSamples.table[audioChunkNumber-1];
 
-    firstSample = tableItem[2];
-    sampleCount = tableItem[3];
+    var tableItem = audioSamples.table[chunkNumber - 1];
+    var firstSample = tableItem[2];
+    var sampleCount = tableItem[3];
 
     return firstSample + sampleCount - 1;
 }
+
+
+function SampleChunkOffset(samples, frame)
+{
+    var item = FindItemInTable(frame, samples.table);
+    var chunk = item[0];
+    var chunkOffset = GetChunkOffset(chunk, samples);
+    return chunkOffset;
+}
+
+// Seek table constructor and selectors
+
+function MakeSeekTable(videoSamples, audioSamples)
+{
+    // [Timestamp, Keyframe Index, Keyframe Number, Offset, audioFrom]
+    var result = [];
+
+    var list = KeyFrameList(videoSamples);
+    for(var i = 0; i < list.length; i++)
+    {
+        var number = list[i]; // key frame number
+        var ts = GetSampleTimestamp(number, videoSamples)[0]; // abs decode time
+        var beforeOffset = SampleChunkOffset(videoSamples, number); // video chunk offset
+        var audioFrom = GetAudioFrameEnd(beforeOffset, audioSamples); // audio frame before video
+        // returns -1 if no audio before offset 0 (first video chunk)
+        var offset = 0;
+        if (audioFrom > 0)
+        {
+            offset = SampleChunkOffset(audioSamples, audioFrom); // audio chunk offset
+        }
+        else
+        {
+            audioFrom = 1;
+        }
+
+        result.push([ts, i, number, offset, audioFrom]);
+    }
+
+    result = result.sort((a, b) => a[0] - b[0]);
+
+    console.log("--- Seek table ---");
+
+    return result;
+}
+
+function seekTimestamp(seekItem)
+{
+    return seekItem[0];
+}
+
+function seekFrameIndex(seekItem)
+{
+    return seekItem[1];
+}
+
+function seekFrameNumber(seekItem)
+{
+    return seekItem[2];
+}
+
+function seekOffset(seekItem)
+{
+    return seekItem[3];
+}
+
+function seekAudioFrom(seekItem)
+{
+    return seekItem[4];
+}
+
 
 function TrackIndex(handlerList, trackName)
 {
@@ -301,6 +373,9 @@ function TrackIndex(handlerList, trackName)
 }
 
 
+// Signal Handling
+
+
 function writeBytes(bytes)
 {
     postMessage(["mp4", bytes]);
@@ -309,6 +384,11 @@ function writeBytes(bytes)
 function signal(args)
 {
     postMessage(["signal", args]);
+}
+
+function signalReadFrom(offset, initSegment)
+{
+    postMessage(["readFrom", [offset, initSegment]]);
 }
 
 workerState = "notRunning"; // notRunning samlpesLoaded writingFragments done
@@ -330,6 +410,10 @@ onmessage = function(e)
 
         case "mp4":
             handleMp4(args);
+            break;
+        
+        case "seek":
+            handleSeek(args);
             break;
 
         case "signal":
@@ -400,6 +484,7 @@ function handleMp4(args)
         }
         else
         {
+            workerState = "writingFragments";
             initSegment = headerBytes;
             writeBytes(headerBytes);
         }
@@ -450,6 +535,57 @@ function writeNextFragment(fileInfo)
         writeBytes(bytesToWrite);
     }
 
+}
+
+function handleSeek(args)
+{
+    var decimalTime = args;
+
+    // to absolute decode time
+    var timestamp = Math.floor(decimalTime * videoSamples.timeScale);
+    timestamp -= 5; // make it off by a little bit
+
+    // get seek item
+    var seekIndex = -1;
+    if(timestamp <= seekTimestamp(seekTable[0]))
+    {
+        seekIndex = 0;
+    }
+    if(timestamp >= seekTimestamp(seekTable[seekTable.length - 1]))
+    {
+        seekIndex = seekTable.length - 1;
+    }
+    else
+    {
+        seekIndex = TableBinarySearch(seekTable, timestamp, 0); // [0] -- ts
+    }
+    var seekItem = seekTable[seekIndex];
+
+
+    // change fragmentation states
+    workerState = "writingFragments";
+    currentKeyFrameIndex = seekFrameIndex(seekItem);
+
+    var rawFromFrame = seekAudioFrom(seekItem);
+    audioFromFrame = (rawFromFrame > 1) ? rawFromFrame : 1;
+
+    // seek to a heuristic offset
+    var offset = seekOffset(seekItem);
+
+    beginOffset = offset;
+    buffer = new Uint8Array(0);
+
+    console.log("Seeking to " + decimalTime + " (" + timestamp + ") offset=" + offset
+        + "\nvideo from=" + seekFrameNumber(seekItem) + " audio from=" + audioFromFrame);
+    
+    if(Math.abs(seekTimestamp(seekItem) - timestamp) > 20 * videoSamples.timeScale)
+    {
+        console.error("Too far!");
+    }
+    else
+    {
+        signalReadFrom(offset, initSegment);
+    }
 }
 
 

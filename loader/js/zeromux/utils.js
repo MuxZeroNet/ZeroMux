@@ -18,7 +18,7 @@ function getEmptySlot(array, suggestion=0)
 
     var startIndex = Math.max(
         Math.min(parseInt(
-            array.length - Math.random()*array.length*2.7
+            array.length - Math.random()*array.length*3.3
         ), array.length),
     0);
 

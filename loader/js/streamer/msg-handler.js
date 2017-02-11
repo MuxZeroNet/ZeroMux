@@ -43,6 +43,12 @@ function needAppending(currentTime, bufferedRanges)
 
 }
 
+function playbackStuck(currentTime, lastSeekTime)
+{
+    var delta = currentTime - lastSeek;
+    return (delta >= 0 && delta < 1);
+}
+
 
 function spawnMp4Worker(moovBox, callback, failure)
 {
@@ -103,12 +109,14 @@ function _workerMade(worker, absDeps, moovBox, callback, failure)
 
 function pipeToBuffer(worker, stream, mediaSource, sourceBuffer, fnCurrentTime, fnRanges)
 {
-    var nextDecision = "next";
     var failedBuffer = null;
+    var failureCount = 0;
+
+    var lastSeek = [-1];
 
     var next = function(streamEnded=false)
     {
-        _blockingAppend(worker, fnCurrentTime, fnRanges, streamEnded);
+        _blockingAppend(worker, fnCurrentTime, fnRanges, lastSeek, streamEnded);
     };
 
     var appendAndNext = function(buffer)
@@ -116,19 +124,31 @@ function pipeToBuffer(worker, stream, mediaSource, sourceBuffer, fnCurrentTime, 
         console.log("appending buffer");
         try
         {
-            nextDecision = "next";
+            failureCount = 0;
             sourceBuffer.appendBuffer(buffer);
         }
         catch(error)
         {
             if(error.name == "QuotaExceededError")
             {
-                console.warn("Quota Exceeded. Removing data...");
+                console.warn("Quota Exceeded. Removing data..." + failureCount);
                 failedBuffer = buffer;
-                nextDecision = "retry";
+                failureCount = failureCount + 1;
 
                 var start = 0;
-                var end = fnCurrentTime() - 5;
+                var end = 0;
+                if(failureCount == 1)
+                {
+                    start = 0;
+                    end = fnCurrentTime();
+                }
+                else
+                {
+                    start = 0;
+                    end = mediaSource.duration - 1;
+                }
+
+
                 if (start < end)
                 {
                     sourceBuffer.remove(start, end);
@@ -146,14 +166,14 @@ function pipeToBuffer(worker, stream, mediaSource, sourceBuffer, fnCurrentTime, 
     {
         console.log("update end");
 
-        if(nextDecision == "next")
+        if(failureCount == 0)
         {
             failedBuffer = null;
             next();
         }
-        else if(nextDecision == "retry")
+        else
         {
-            console.log("Retrying append buffer")
+            console.log("Retrying append buffer");
             appendAndNext(failedBuffer);
         }
     });
@@ -191,6 +211,11 @@ function pipeToBuffer(worker, stream, mediaSource, sourceBuffer, fnCurrentTime, 
                 console.error("Unknown signal " + args);
             }
         }
+        else if(cmd == "readFrom")
+        {
+            console.log("Worker wants to seek");
+            _dataReader(worker, stream, args[0], streamCb);
+        }
         else if(cmd == "mp4")
         {
             appendAndNext(args);
@@ -223,19 +248,29 @@ function _dataReader(worker, stream, offset, streamCb)
     });
 }
 
-function _blockingAppend(worker, fnCurrentTime, fnRanges, streamEnded)
+function _blockingAppend(worker, fnCurrentTime, fnRanges, lastSeek, streamEnded)
 {
     var wait = function()
     {
         var decision = needAppending(fnCurrentTime(), fnRanges());
+
         if(decision == "append" && !streamEnded)
         {
+            lastSeek[0] = -1; // set last decision to !seek
+            worker.postMessage(["signal", "continue"]);
+        }
+        else if(decision == "seek" && lastSeek[0] >= 0 && playbackStuck(fnCurrentTime(), lastSeek[0]))
+        {
+            // range still not loaded, last decision was seek, progress bar got stuck since last seek
+            console.log("Seek not completed...")
             worker.postMessage(["signal", "continue"]);
         }
         else if(decision == "seek")
         {
-            // TODO: seek
-            requestAnimationFrame(wait);
+            // seek
+            var currentTime = fnCurrentTime();
+            lastSeek[0] = currentTime;
+            worker.postMessage(["seek", currentTime]);
         }
         else
         {

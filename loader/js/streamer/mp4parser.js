@@ -490,9 +490,9 @@ function concatArrays(first, second)
 
 function memcpy(dst, dstOffset, src, srcOffset, length)
 {
-  var dstU8 = new Uint8Array(dst, dstOffset, length);
-  var srcU8 = new Uint8Array(src, srcOffset, length);
-  dstU8.set(srcU8);
+    var dstU8 = new Uint8Array(dst, dstOffset, length);
+    var srcU8 = new Uint8Array(src, srcOffset, length);
+    dstU8.set(srcU8);
 };
 
 function getString(nameArray)

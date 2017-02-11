@@ -155,7 +155,15 @@ function _makeEvents(self, daemon, userEvents)
     events.onpieceerror = userEvents.onpieceerror;
 
     // triggers when the original big file is being build, built or failed to build.
-    events.onblobbuilding = userEvents.onblobbuilding;
+    events.onblobbuilding = function(e)
+    {
+        // set everything as loaded
+        self.rangeStart = 0;
+        self.rangeEnd = self.buffer.length - 1;
+
+        userEvents.onblobbuilding(null);
+    };
+    
     events.onfinish = userEvents.onfinish;
     events.onbuilderror = userEvents.onbuilderror;
 

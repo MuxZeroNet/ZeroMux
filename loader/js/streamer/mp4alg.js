@@ -52,19 +52,18 @@ function FindIndexInCountsM(array, countIndex, number, cachedIndex=0, cachedSum=
 
 function GetMaxChunkNumber(sampleInfo)
 {
-    var maxChunkNumber = sampleInfo.chunkOffsetList.length;
-    return maxChunkNumber;
+    return sampleInfo.chunkOffsetList.length;
 }
 
 
 function GetChunkOffset(chunkNumber, sampleInfo)
 {
-    var chunkOffsetList = sampleInfo.chunkOffsetList;
-    return chunkOffsetList[chunkNumber - 1];
+    return sampleInfo.chunkOffsetList[chunkNumber - 1];
 }
 
 // slow functions
 
+// returns [cache, sampleCount, descIndex]
 function GetChunkInfo(chunkNumber, sampleInfo, startIndex=0)
 {
     var sampleCountEntries = sampleInfo.sampleCountEntries;
@@ -117,7 +116,7 @@ function GetChunkFirstSampleNumberM(chunkNumber, sampleInfo, startChunkNumber=1,
     {
         //startIndex, count, t = GetChunkInfo(number, sampleInfo, startIndex=startIndex)
         var abc = GetChunkInfo(number, sampleInfo, startIndex);
-        var startIndex = abc[0];
+        startIndex = abc[0];
         var count = abc[1];
 
         result += count;
@@ -160,11 +159,11 @@ function GetSampleSize(number, sampleInfo)
 {
     //constantSampleSize, sampleSizeList = sampleInfo["offsetInfo"]["sampleSizeInfo"]
     var stsz = sampleInfo.sampleSizeInfo;
-    var constantSampleSize = stsz[0];
-    var sampleSizeList = stsz[1];
+    var constSize = stsz[0];
+    var sizeList = stsz[1];
 
     //sampleSize = constantSampleSize if constantSampleSize != 0 else sampleSizeList[number-1]
-    var sampleSize = (constantSampleSize != 0) ? constantSampleSize : sampleSizeList[number-1];
+    var sampleSize = (constSize != 0) ? constSize : sizeList[number-1];
 
     return sampleSize;
 }
@@ -174,68 +173,75 @@ function GetMaxSampleNumber(sampleInfo)
     return sampleInfo.sampleSizeInfo[1].length;
 }
 
+
+
 // slow functions
 function GetSampleOffset(chunkNumber, relativeSampleNumber, sampleInfo)
 {
     throw "GetSampleOffset is not implemened in JS version.";
 }
 
+// get the absolute time stamp of given sample
+// returns [absolute decode time, ctOffset]
 function GetSampleTimestamp(number, sampleInfo)
 {
-    var dtDeltaEntries = sampleInfo.dtDeltaEntries;
-    var ctOffsetEntries = sampleInfo.ctOffsetEntries;
+    var dtDeltaList = sampleInfo.dtDeltaEntries;
+    var ctOffsetList = sampleInfo.ctOffsetEntries;
 
     if (number == 1)
     {
         var absoluteDt = 0;
-        var CtOffset = null;
+        var ctOffset = null;
 
-        if (ctOffsetEntries != null)
+        if (ctOffsetList != null)
         {
-            CtOffset = ctOffsetEntries[0][1];
+            ctOffset = ctOffsetList[0][1];
         }
         else
         {
-            CtOffset = 0;
+            ctOffset = 0;
         }
-        return [absoluteDt, CtOffset]; // for the first sample
+        return [absoluteDt, ctOffset]; // for the first sample
     }
 
     // absoluteDt = sum of duration of all prev samples
-    var index = FindIndexInCounts(dtDeltaEntries, 0, number);
-    // sampleCount: dtDeltaEntries[i][0];
-    // sampleDelta: dtDeltaEntries[i][1];
 
-    //dtSum = sum( [dtDeltaEntries[i][0]*dtDeltaEntries[i][1] for i in range(index)] )
+    var index = FindIndexInCounts(dtDeltaList, 0, number);
+
+    // dtDeltaList:
+    // [0]          [1]
+    // sampleCount  sampleDelta
+
+    // dtSum = sum( [dtDeltaEntries[i][0]*dtDeltaEntries[i][1] for i in range(index)] )
     // sum(duration of all prev samples)
 
     var dtSum = 0;
     for(var i = 0; i < index; i++)
     {
-        dtSum += dtDeltaEntries[i][0]*dtDeltaEntries[i][1];
+        dtSum += dtDeltaList[i][0] * dtDeltaList[i][1];
     }
 
-    //startSampleNumber = 1 + sum( [dtDeltaEntries[i][0] for i in range(index)] )
+    // startSampleNumber = 1 + sum( [dtDeltaEntries[i][0] for i in range(index)] )
 
     var startSampleNumber = 1;
     for(var i = 0; i < index; i++)
     {
-        startSampleNumber += dtDeltaEntries[i][0];
+        startSampleNumber += dtDeltaList[i][0];
     }
 
-    var currentSampleCount = dtDeltaEntries[index][0];
-    var currentSampleDuration = dtDeltaEntries[index][1];
+    var currentSampleCount = dtDeltaList[index][0];
+    var currentSampleDuration = dtDeltaList[index][1];
     var nextStartSampleNumber = startSampleNumber + currentSampleCount;
 
 
-    dtSum += (number-startSampleNumber) * currentSampleDuration;
+    dtSum += (number - startSampleNumber) * currentSampleDuration;
 
     //ctts = ctOffsetEntries[FindIndexInCounts(ctOffsetEntries, 0, number)][1] \
     //    if ctOffsetEntries != None \
     //    else 0
 
-    var ctts = (ctOffsetEntries != null)
-        ? ctOffsetEntries[FindIndexInCounts(ctOffsetEntries, 0, number)][1]
+    var ctts = (ctOffsetList != null)
+        ? ctOffsetList[FindIndexInCounts(ctOffsetList, 0, number)][1]
         : 0;
 
     return [dtSum, ctts];
@@ -245,7 +251,7 @@ function GetSampleTimestamp(number, sampleInfo)
 
 function FirstChunkAfterOffset(offset, sampleInfo)
 {
-    var offsetList = sampleInfo.chunkOffsetList
+    var offsetList = sampleInfo.chunkOffsetList;
 
     if (offset >= offsetList[offsetList.length - 1])
     {
@@ -271,7 +277,8 @@ function FirstChunkBeforeOffset(offset, sampleInfo)
 
     if (offset <= offsetList[0])
     {
-        throw "No results. Given offset is <= min offset.";
+        console.warn("No results. Given offset is <= min offset.");
+        return -1;
     }
 
     if (offset > offsetList[offsetList.length - 1])
@@ -345,6 +352,60 @@ function ChunkBinarySearch(table, target, low=0, up=null, retLower=true)
         // upper = half
         //return ChunkBinarySearch(table, target, retLower=retLower, low=lowerBound, up=half);
         return ChunkBinarySearch(table, target, lowerBound, half, retLower);
+    }
+
+}
+
+
+
+// make sure `target` is WITHIN the bounds of `table`
+// when target is not found, return the nearest lowerBound or upperBound
+function TableBinarySearch(table, target, select=0, low=0, up=null, retLower=true)
+{
+    var lowerBound = low;
+    var upperBound = up || table.length - 1;
+
+    if (table[lowerBound][select] == target)
+    {
+        return lowerBound;
+    }
+
+    if (table[upperBound][select] == target)
+    {
+        return upperBound;
+    }
+
+    if (lowerBound + 1 == upperBound)
+    {
+        // not found
+        if (retLower)
+        {
+            return lowerBound;
+        }
+        else
+        {
+            return upperBound;
+        }
+    }
+
+    var half = lowerBound + (upperBound - lowerBound) / 2;
+    half = half | 0; /* "//" 2 */
+
+    if (table[half][select] == target)
+    {
+        return half;
+    }
+
+    else if (table[half][select] < target)
+    {
+        // lower <- half
+        return TableBinarySearch(table, target, select, half, upperBound, retLower);
+    }
+
+    else if (table[half][select] > target)
+    {
+        // upper <- half
+        return TableBinarySearch(table, target, select, lowerBound, half, retLower);
     }
 
 }

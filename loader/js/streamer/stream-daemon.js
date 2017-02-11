@@ -215,7 +215,8 @@ function waitAndLoadSegment(selectors, toIndex, fns, retry=1000)
         }
         else
         {
-            console.log("Daemon: Seeking to index " + toIndex + ". [" + rangeStart + ", " + rangeEnd + "]");
+            console.log("Daemon: Seeking to index "
+                + toIndex + ". [" + rangeStart + ", " + rangeEnd + "]");
 
             selectors.setDaemonLoadedIndex(toIndex - 1); // move position pointer
             selectors.setRangeStart(toIndex); // advise downloader
