@@ -29,9 +29,9 @@ function newByteStream(jsonPath, sortedParts, events)
         s.readFrom("current", callback);
     };
 
-    s.peakAt = function(offset)
+    s.peekAt = function(offset)
     {
-        return _streamPeak(s, offset);
+        return _streamPeek(s, offset);
     };
 
     // read lock
@@ -284,17 +284,17 @@ function _streamRead(self, offset, callback)
         }
     };
 
-    // first, peak
-    var bytes = self.daemon.peak(chunkIndex);
+    // first, peek
+    var bytes = self.daemon.peek(chunkIndex);
     if(bytes != null)
     {
-        console.log("Result obtained by daemon.peak(...)");
+        console.log("Result obtained by daemon.peek(...)");
 
         sliceAndCallback(bytes);
     }
     else
     {
-        // peak failed -> readFrom(index)
+        // peek failed -> readFrom(index)
         self.daemon.readFrom(chunkIndex, function(idx, b)
         {
             assert(idx == chunkIndex, "readFrom callback error");
@@ -305,7 +305,7 @@ function _streamRead(self, offset, callback)
     
 }
 
-function _streamPeak(self, offset)
+function _streamPeek(self, offset)
 {
     if(self.position < offset)
     {
@@ -313,9 +313,9 @@ function _streamPeak(self, offset)
     }
 
     // I decided not to call preload()
-    // so peak(...) does not have side effects
+    // so peek(...) does not have side effects
 
-    console.log("Peak at offset " + offset);
+    console.log("Peek at offset " + offset);
 
     var chunkIndex = _getIndex(self.offsetList, offset);
     if(chunkIndex > self.offsetList.length - 1) // EOF
@@ -324,7 +324,7 @@ function _streamPeak(self, offset)
     }
 
     var difference = offset - self.offsetList[chunkIndex];
-    var chunkBytes = self.daemon.peak(chunkIndex);
+    var chunkBytes = self.daemon.peek(chunkIndex);
 
     assert(difference >= 0, "bug found");
 

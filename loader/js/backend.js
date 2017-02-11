@@ -25,7 +25,7 @@ function attachToken(element, callback, failure)
 
 function popAttachedToken(element)
 {
-    var token = peakAttachedToken(element);
+    var token = peekAttachedToken(element);
     if(token.length > 0)
     {
         element.removeAttribute("data-token");
@@ -33,7 +33,7 @@ function popAttachedToken(element)
     return token;
 }
 
-function peakAttachedToken(element)
+function peekAttachedToken(element)
 {
     if(element.hasAttribute("data-token"))
     {

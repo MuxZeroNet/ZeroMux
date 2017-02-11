@@ -98,9 +98,9 @@ function initDaemon(daemonFns)
         }
     }
 
-    daemon.peak = function(index) // sync
+    daemon.peek = function(index) // sync
     {
-        return daemonPeak(daemon, daemonFns, index);
+        return daemonPeek(daemon, daemonFns, index);
     };
 
     daemon.waitAndLoadNext = function(callback=null)
@@ -250,7 +250,7 @@ function waitAndLoadSegment(selectors, toIndex, fns, retry=1000)
 
 }
 
-function daemonPeak(self, fns, index)
+function daemonPeek(self, fns, index)
 {
     if(self.getDaemonStopped())
     {

@@ -868,7 +868,7 @@ function initNewFolderDialog()
 
     createButton.onclick = function()
     {
-        var tokenAttached = peakAttachedToken(createButton);
+        var tokenAttached = peekAttachedToken(createButton);
         if(tokenAttached.length == 0)
         {
             console.error("No token!");
@@ -936,7 +936,7 @@ function initRenameDialog()
     var renameButton = selectRenameConfirmButton();
     renameButton.onclick = function()
     {
-        var tokenAttached = peakAttachedToken(renameButton);
+        var tokenAttached = peekAttachedToken(renameButton);
         if(tokenAttached.length == 0)
         {
             console.error("No token.");
@@ -1099,7 +1099,7 @@ function initDeleteFileDialog()
     var confirmDelete = selectDeleteConfirmButton();
     confirmDelete.onclick = function()
     {
-        var tokenAttached = peakAttachedToken(confirmDelete);
+        var tokenAttached = peekAttachedToken(confirmDelete);
         if(tokenAttached.length == 0)
         {
             dealWithFailure("No token");

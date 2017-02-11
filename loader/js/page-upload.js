@@ -132,7 +132,7 @@ function setChooseFileButton()
     chooseButton.onclick = function()
     {
         var confirmButton = document.getElementById("confirm-upload-button");
-        var confirmHasToken = (peakAttachedToken(confirmButton).length > 0);
+        var confirmHasToken = (peekAttachedToken(confirmButton).length > 0);
         if(!confirmHasToken)
         {
             showStatusReport(" ");
