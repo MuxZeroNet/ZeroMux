@@ -58,7 +58,7 @@ function simplerWorker(jsPath, callback)
     };
 
 
-    requestBinary(jsPath, "arraybuffer", success, failure);
+    requestBinary(jsPath + "?" + noCacheQueries(), "arraybuffer", success, failure);
 }
 
 

@@ -22,11 +22,42 @@ function newByteStream(jsonPath, sortedParts, events)
             }
             _streamRead(s, offset, callback);
         });
-        
+
     };
     s.read = function(callback)
     {
         s.readFrom("current", callback);
+    };
+
+    var SEEK_SET = 0;
+    var SEEK_CUR = 1;
+    s["SEEK_SET"] = SEEK_SET;
+    s["SEEK_CUR"] = SEEK_CUR;
+
+    s.seek = function(offset, whence, callback)
+    {
+        s.lock(function()
+        {
+            var result = false;
+            if(whence == SEEK_SET)
+            {
+                s.position = offset;
+                result = true;
+            }
+            else if(whence == SEEK_CUR)
+            {
+                s.position = s.position + offset;
+                result = true;
+            }
+            else
+            {
+                console.error("ByteStream.seek: invalid whence " + whence);
+                result = false;
+            }
+
+            s.markFree(); // release lock
+            callback(result);
+        });
     };
 
     s.peekAt = function(offset)
@@ -163,7 +194,7 @@ function _makeEvents(self, daemon, userEvents)
 
         userEvents.onblobbuilding(null);
     };
-    
+
     events.onfinish = userEvents.onfinish;
     events.onbuilderror = userEvents.onbuilderror;
 
@@ -220,13 +251,13 @@ function _offsetBinarySearch(list, offset, low=0, up=null, retLower=true)
     }
 }
 
-function _waitAndLock(self, callback)
+function _waitAndLock(self, callback, n=0)
 {
-    setTimeout(function()
+    var loop = function()
     {
         if(self.isBusy())
         {
-            _waitAndLock(self, callback);
+            _waitAndLock(self, callback, 23);
         }
         else
         {
@@ -235,7 +266,9 @@ function _waitAndLock(self, callback)
             self.markBusy();
             callback();
         }
-    }, 37);
+    };
+    
+    setTimeout(loop, n);
 }
 
 function _streamRead(self, offset, callback)
@@ -252,7 +285,7 @@ function _streamRead(self, offset, callback)
     }
 
     var difference = offset - self.offsetList[chunkIndex];
-    
+
     assert(difference >= 0, "diff < 0");
 
     var sliceAndCallback = function(bytes)
@@ -298,11 +331,11 @@ function _streamRead(self, offset, callback)
         self.daemon.readFrom(chunkIndex, function(idx, b)
         {
             assert(idx == chunkIndex, "readFrom callback error");
-            
+
             sliceAndCallback(b);
         });
     }
-    
+
 }
 
 function _streamPeek(self, offset)
