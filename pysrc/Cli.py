@@ -2,8 +2,21 @@
 
 import argparse
 import os
+import sys
 
 from FileChunks import *
+
+def warn(text):
+    if sys.platform.startswith("win"):
+        return text.upper()
+    else:
+        return "\033[93m" + text + "\x1b[0m"
+
+def blue(text):
+    if sys.platform.startswith("win"):
+        return text
+    else:
+        return "\033[94m" + text + "\x1b[0m"
 
 def Main():
     epilog_lines = [
@@ -43,23 +56,23 @@ def Main():
         in the specified directory to store the chunks.""")
 
     parser.add_argument("-chunk_size", action="store", dest="size_kb", type=int, \
-        help="""[optional] chunk size in KB.
+        help=blue("[optional]") + """ chunk size in KB.
         If not specified, a reasonable value will be calculated and chosen.""")
 
     parser.add_argument("-rel_path", action="store", dest="relative_path", \
-        help="""[DEPRECATED] [optional] relative folder path with respect to __file loading page__.
+        help=warn("[DEPRECATED]")+blue("[optional]") + """ relative folder path with respect to __file loading page__.
         (e.g. http://zero.net/1YourSite/loader/files/big_file/*.dat => -rel_path \"files/big_file\")
         Specifying rel_path will also change the name of the new folder created.""")
     parser.add_argument("-container", action="store", dest="container_name", \
-        help="""[optional] specify the folder name that is used to contain the file chunks.
+        help=blue("[optional]") + """ specify the folder name that is used to contain the file chunks.
         If the specified folder exists, a new folder name will be chosen automatically.
         Illegal chars in specified folder name will
         be replaced with underlines (_)""")
     parser.add_argument("-name", action="store", dest="name", \
-        help="[optional] specify a friendly file name to be displayed")
+        help=blue("[optional]") + " specify a friendly file name to be displayed")
 
     parser.add_argument("-moov_out", action="store", dest="moov_path", \
-        help="""[optional] Don't slice any file. Try to only extract the 'moov' box
+        help=""" Don't slice any file. Try to only extract the 'moov' box
         of given input file (MP4 format) and write the box to `moov_path`.
         """)
 

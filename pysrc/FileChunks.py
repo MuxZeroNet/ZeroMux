@@ -10,13 +10,12 @@ import json
 import random
 
 import hashlib
-import codecs
 
 from Mp4Atom import *
 from BoxDecoder import *
 
 def FolderNameIsUgly(chosen_folder_name, real_file_name):
-    if len(chosen_folder_name) > 50:
+    if len(chosen_folder_name) > 55:
         return True
 
     if chosen_folder_name.strip() == "":
@@ -28,10 +27,17 @@ def FolderNameIsUgly(chosen_folder_name, real_file_name):
 
     unsafe = [
         "/", "\\", "|", ":", ";", "'", '"', "`", "^", "?", "*", "<", ">",
-        "+", "#", "%", "&", "$", ",", "[", "]", "!", "~",
+        "+", "#", "%", "&", "$", ",", "[", "]", "!", "~", " ", "..",
     ]
     for unsafe_char in unsafe:
         if unsafe_char in chosen_folder_name:
+            return True
+
+    unsafe_suffixes = [
+        ".gz", ".zip", ".bz2",
+    ]
+    for suffix in unsafe_suffixes:
+        if chosen_folder_name.endswith(suffix):
             return True
 
     short_pattern = re.compile("(^[0-9]{1,4}$|^[a-z]{1,2}$)")
@@ -49,6 +55,7 @@ def FolderNameIsUgly(chosen_folder_name, real_file_name):
     return False
 
 def CorrectFolderName(folder_name, in_folder, real_file_name, retry=5):
+    # base case
     if retry <= 0:
         return "file_" + os.urandom(8).encode('hex')
 
@@ -91,14 +98,22 @@ def CorrectFolderName(folder_name, in_folder, real_file_name, retry=5):
         chosen_folder_name = re.sub(exp_trim_left, "", chosen_folder_name)
         chosen_folder_name = re.sub(exp_trim_right, "", chosen_folder_name)
 
+        unsafe_suffixes = [
+            ".gz", ".zip", ".bz2",
+        ]
+        for suffix in unsafe_suffixes:
+            if chosen_folder_name.endswith(suffix):
+                chosen_folder_name = chosen_folder_name + "_"
+                break
+
 
     base_on = None
 
     if FolderNameIsUgly(chosen_folder_name, real_file_name):
-        # try making a folder name by adding random numbers
+        # Then don't use chosen folder name. Use real file name instead.
         base_on = os.urandom(4).encode('hex') + "_" + real_file_name
     elif os.path.exists(in_folder + "/" + chosen_folder_name):
-        # try making a folder name out of real file name
+        # Add random numbers and try again
         base_on = os.urandom(4).encode('hex') + "_" + chosen_folder_name
 
     if base_on != None:
@@ -194,7 +209,7 @@ def SplitFile(filePath, savePath, relPath, givenFileName, idealChunkSize=500*102
         "fileParts": filePartList
     }
 
-    jsonFileInfo = codecs.open(savePath + "/file.json", 'w', 'utf-8')
+    jsonFileInfo = io.open(savePath + "/file.json", 'w', encoding='utf-8')
     jsonFileInfo.write( unicode(json.dumps(jsonContent)) )
     jsonFileInfo.flush()
     jsonFileInfo.close()
