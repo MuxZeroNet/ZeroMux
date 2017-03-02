@@ -351,11 +351,11 @@ var StyleList = [
 
     ["document-ppt", ["file-powerpoint-o", "color-ppt"], ["odg", "odp", "otp", "potm", "potx", "pps", "ppsm", "ppsx", "ppt", "pptm", "pptx", "sldm", "sldx"]], 
 
-    ["document-txt", ["file-text-o", "color-word"], ["ipynb", "log", "markdown", "md", "rst", "rtf", "txt"]], 
+    ["document-txt", ["file-text-o", "color-word"], ["azw", "azw3", "djvu", "epub", "ipynb", "kf8", "lit", "log", "markdown", "md", "mobi", "prc", "rst", "rtf", "txt"]], 
 
     ["document-pdf", ["file-pdf-o", "color-pdf"], ["pdf"]], 
 
-    ["archive", ["file-archive-o", "color-archive"], ["7z", "bz2", "cab", "deb", "gz", "gzip", "img", "iso", "rar", "rpm", "tar", "tgz", "xz", "zip"]], 
+    ["archive", ["file-archive-o", "color-archive"], ["7z", "ace", "bz2", "cab", "cb7", "cba", "cbr", "cbt", "cbz", "deb", "dmg", "gz", "gzip", "img", "iso", "rar", "rpm", "tar", "tgz", "xz", "zip"]], 
     
     ["music", ["file-audio-o", "color-pics"], ["aac", "aiff", "alac", "ape", "dts", "flac", "m4a", "mid", "midi", "mp3", "oga", "ogg", "opus", "pcm", "shn", "tta", "wav", "wma", "wv"]],
     
