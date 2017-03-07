@@ -108,6 +108,7 @@ function _dlMoov(args, obj, callback, retry=5)
         }
     };
 
+    console.log("Downloading moov box......");
     requestBinary(args.moovPath + "?" + noCacheQueries(), "arraybuffer", success, failure);
 }
 

@@ -27,13 +27,11 @@ Both ZeroMux and ZeroNet use bleeding edge features of JavaScript. Browser imple
 
 Loading a cross-origin Web Worker script is not allowed in major browsers. I believe this is not the correct model regarding both usability and security. On Stack Overflow, there are many questions about loading cross-origin Web Workers, but few of them has a definite answer.
 
-MDN wiki editors wrote about [inline Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers), but there is a disagreement on whether a Blob URL is allowed to load a Web Worker. Google Chrome refuses to load a Blob URL Web Worker defined in an HTTPS page. Due to such disagreement, ZeroMux may not work on HTTPS-enabled ZeroNet gateways.
-
-Firefox renders Remote XUL Error when it tries to pop up a dialog from an iframe sandbox. This [Firefox bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1313268) will be fixed in Firefox 52. ZeroMux still works in Firefox, except Firefox assigns random names to files.
+MDN wiki editors demonstrated [inline Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers), but there is a disagreement on whether a Blob URL is allowed to load a Web Worker. Google Chrome refuses to load a Blob URL Web Worker defined in an HTTPS page. Due to such disagreement, ZeroMux may not work on HTTPS-enabled ZeroNet gateways.
 
 Google Chrome refuses to load any Media Source URL in an iframe sandbox. This [Chromium bug](https://bugs.chromium.org/p/chromium/issues/detail?id=686516) was actually [reported in 2014](https://bugs.chromium.org/p/chromium/issues/detail?id=379206), but remains unfixed for more than 2 years. WebTorrent is also [affected](https://github.com/feross/webtorrent/issues/783) by this bug. Video streaming does not work in Google Chrome unless this bug is fixed.
 
-Web Fonts are [required](https://www.w3.org/TR/css-fonts-3/#font-fetching-requirements) to be fetched Anonymously. This is a privacy-respecting design, but ZeroNet will not give you the right response if UiPassword plugin is enabled but you do not send a valid Cookie header. The UI may look not pretty when UiPassword plugin is enabled.
+ZeroMux sites do not work when UiPassword plugin is enabled. This is a ZeroNet [bug](https://github.com/HelloZeroNet/ZeroNet/issues/812).
 
 ## Ways to Help
 You can make ZeroMux project better by simply:
@@ -51,6 +49,6 @@ You can also donate to [ZeroNet](https://github.com/HelloZeroNet/ZeroNet) and he
 ## Acknowledgement
 ZeroMux benefits from the super-fast [asmCrypto.js](https://github.com/vibornoff/asmcrypto.js/tree/master) library.
 
-ZeroMux gets around [a Firefox bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1313268) with the assistance of [SandBlaster](https://github.com/JamesMGreene/sandblaster).
+ZeroMux gets around [~~Firefox bug #1313268~~](https://bugzilla.mozilla.org/show_bug.cgi?id=1313268) with the assistance of [SandBlaster](https://github.com/JamesMGreene/sandblaster).
 
 The code for parsing MP4 codec string is extensively based on [mp4-box-encoding](https://github.com/jhiesey/mp4-box-encoding).
