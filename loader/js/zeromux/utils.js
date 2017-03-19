@@ -189,5 +189,5 @@ function noCacheQueries()
 
 function dummyQueries()
 {
-    return "_r=_0.1.4_" + Math.random();
+    return "_r=_0.1.5_" + Math.random();
 }
