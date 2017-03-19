@@ -68,7 +68,7 @@ function GetChunkInfo(chunkNumber, sampleInfo, startIndex=0)
 {
     var sampleCountEntries = sampleInfo.sampleCountEntries;
 
-    var maxChunkNumber = GetMaxChunkNumber(sampleInfo)
+    var maxChunkNumber = GetMaxChunkNumber(sampleInfo);
     if (chunkNumber > maxChunkNumber)
     {
         throw "chunkNumber out of range.";
@@ -175,11 +175,6 @@ function GetMaxSampleNumber(sampleInfo)
 
 
 
-// slow functions
-function GetSampleOffset(chunkNumber, relativeSampleNumber, sampleInfo)
-{
-    throw "GetSampleOffset is not implemened in JS version.";
-}
 
 // get the absolute time stamp of given sample
 // returns [absolute decode time, ctOffset]
@@ -301,7 +296,7 @@ function FirstChunkBeforeOffset(offset, sampleInfo)
 // when target is not found, return the nearest lowerBound or upperBound
 function ChunkBinarySearch(table, target, low=0, up=null, retLower=true)
 {
-    var lowerBound = low
+    var lowerBound = low;
     var upperBound = up || table.length - 1;
 
     if (table[lowerBound] == target)

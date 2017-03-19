@@ -78,7 +78,7 @@ function _createSource(args, jsonObj, videoElement, callback)
         };
 
         // make byte stream
-        var userEvents = args.events || initEventObj()
+        var userEvents = args.events || initEventObj();
         obj["stream"] = newByteStream(args.jsonPath, jsonObj[1], userEvents);
 
         _dlMoov(args, obj, callback);
@@ -89,7 +89,7 @@ function _dlMoov(args, obj, callback, retry=5)
 {
     var success = function(xmlHttp)
     {
-        _makeMux(args, obj, xmlHttp.response, callback)
+        _makeMux(args, obj, xmlHttp.response, callback);
     };
 
     var failure = function(xmlHttp, reason)
@@ -103,7 +103,7 @@ function _dlMoov(args, obj, callback, retry=5)
             console.warn("Failed to load moov. Retrying..." + retry);
             setTimeout(function()
             {
-                _dlMoov(args, obj, callback, retry - 1)
+                _dlMoov(args, obj, callback, retry - 1);
             }, 1000);
         }
     };
@@ -157,7 +157,7 @@ function createMediaSource(codecs, videoElement, callback)
         callback([mediaSource, sourceBuffer, mediaUrl]);
     };
 
-    mediaSource.onsourceopen = onSourceOpen;
+    mediaSource.addEventListener("sourceopen", onSourceOpen);
 
     videoElement.src = mediaUrl;
 }

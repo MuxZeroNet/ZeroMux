@@ -96,7 +96,7 @@ function initDaemon(daemonFns)
             };
             return newFns;
         }
-    }
+    };
 
     daemon.peek = function(index) // sync
     {

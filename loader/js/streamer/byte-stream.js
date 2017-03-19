@@ -213,7 +213,7 @@ function _makeEvents(self, daemon, userEvents)
 // returns index
 function _offsetBinarySearch(list, offset, low=0, up=null, retLower=true)
 {
-    var lowerBound = low
+    var lowerBound = low;
     var upperBound = up || list.length - 1;
 
     if (list[lowerBound] == offset)

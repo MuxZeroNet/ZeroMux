@@ -20,7 +20,7 @@ function loadMoov(moovBoxBytes)
 
     var tracks = FindBox("trak", moovBox);
 
-    for (trakBox of tracks)
+    for (var trakBox of tracks)
     {
         var sampleInfo = ParseSamples(trakBox);
         // extract `sampleInfo` in this track.
@@ -366,7 +366,7 @@ function TrackIndex(handlerList, trackName)
     var index = handlerList.indexOf(trackName);
     if(index < 0)
     {
-        throw "No " + trackName + " tracks."
+        throw "No " + trackName + " tracks.";
     }
 
     return index;
@@ -411,7 +411,7 @@ onmessage = function(e)
         case "mp4":
             handleMp4(args);
             break;
-        
+
         case "seek":
             handleSeek(args);
             break;
@@ -577,7 +577,7 @@ function handleSeek(args)
 
     console.log("Seeking to " + decimalTime + " (" + timestamp + ") offset=" + offset
         + "\nvideo from=" + seekFrameNumber(seekItem) + " audio from=" + audioFromFrame);
-    
+
     if(Math.abs(seekTimestamp(seekItem) - timestamp) > 20 * videoSamples.timeScale)
     {
         console.error("Too far!");
@@ -629,12 +629,12 @@ function requestAsync(url, minetype, responseType, callback, failure)
     xmlHttp.onload = function()
     {
         callback(xmlHttp);
-    }
+    };
 
     xmlHttp.onerror = function(reason)
     {
         failure(xmlHttp, reason);
-    }
+    };
 
     xmlHttp.onabort = xmlHttp.onerror;
     xmlHttp.ontimeout = xmlHttp.onerror;
@@ -666,5 +666,5 @@ function requestAsync(url, minetype, responseType, callback, failure)
 
 function requestBinary(url, responseType, callback, failure)
 {
-    requestAsync(url, null, responseType, callback, failure)
+    requestAsync(url, null, responseType, callback, failure);
 }

@@ -45,7 +45,7 @@ function needAppending(currentTime, bufferedRanges)
 
 function playbackStuck(currentTime, lastSeekTime)
 {
-    var delta = currentTime - lastSeek;
+    var delta = currentTime - lastSeekTime;
     return (delta >= 0 && delta < 1);
 }
 
@@ -262,7 +262,7 @@ function _blockingAppend(worker, fnCurrentTime, fnRanges, lastSeek, streamEnded)
         else if(decision == "seek" && lastSeek[0] >= 0 && playbackStuck(fnCurrentTime(), lastSeek[0]))
         {
             // range still not loaded, last decision was seek, progress bar got stuck since last seek
-            console.log("Seek not completed...")
+            console.log("Seek not completed...");
             worker.postMessage(["signal", "continue"]);
         }
         else if(decision == "seek")

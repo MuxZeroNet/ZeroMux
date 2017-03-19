@@ -154,7 +154,7 @@ function ParseStszBox(stszBox)
 
     if (8 + 4*sampleCount != stszBox["content"].length)
     {
-         throw "stsz box corrupted: no enough data";
+        throw "stsz box corrupted: no enough data";
     }
 
     var sampleSizeList = [];
@@ -202,7 +202,7 @@ function ParseCttsBox(cttsBox)
 {
     if (cttsBox["version"] != 0)
     {
-        throw "ctts box: version " + cttsBox["version"] + " not implemented."
+        throw "ctts box: version " + cttsBox["version"] + " not implemented.";
     }
 
     var contentStream = newFileInfo(cttsBox["content"].buffer);
@@ -322,7 +322,7 @@ function ExtractTimeScale(mdhdBox)
     {
         throw "mdhd box: version 1 is not implemented";
     }
-    
+
     // skip other fields
     contentStream.read(8);
 
@@ -334,7 +334,7 @@ function GetSampleTable(sampleInfo)
     var maxChunkNumber = GetMaxChunkNumber(sampleInfo);
     var results = [];
 
-    var prevSum = 0
+    var prevSum = 0;
     var cacheChunkNumber = 1;
     var cacheChunkInfoIndex = 0;
 
@@ -471,7 +471,7 @@ function newFileInfo(arrayBuffer)
         obj.pointer += 1;
 
         return B;
-    }
+    };
 
     return obj;
 }
@@ -493,7 +493,7 @@ function memcpy(dst, dstOffset, src, srcOffset, length)
     var dstU8 = new Uint8Array(dst, dstOffset, length);
     var srcU8 = new Uint8Array(src, srcOffset, length);
     dstU8.set(srcU8);
-};
+}
 
 function getString(nameArray)
 {

@@ -60,14 +60,13 @@ function handleJsonData(xmlHttp, jsonPath, events)
 
     var fileParts = Array(filePartInfo.length);
 
-    //var index = getEmptySlot(fileParts);
     var index = 0;
     secureAdd(infoArgs, index, fileParts, events, DefaultMaxRetry);
 }
 
 function requestFailed(xmlHttp, reason)
 {
-    console.error("Failed!!!");
+    console.error("I can't download file.json");
     console.log(reason);
 }
 
@@ -102,7 +101,7 @@ function secureAdd(infoArgs, index, array, events, retry)
     console.log("Downloading piece " + index);
     events.onadding(index);
 
-    requestBinary(pieceInfo["path"]+"?_r="+Math.random(), "arraybuffer",
+    requestBinary(pieceInfo["path"] + "?_r=" + Math.random(), "arraybuffer",
     function(xmlHttp)
     {
         handlePiece(infoArgs, index, array, events, retry, xmlHttp.response);
@@ -150,7 +149,7 @@ function handlePiece(infoArgs, index, array, events, retry, pieceBytes)
 
         events.onadded({"index": index, "pieceBytes": pieceBytes});
 
-        //Next piece
+        // Next piece
         var suggestion = 0;
         if(events["suggest"] != null)
         {
@@ -182,7 +181,7 @@ function checkPiece(pieceInfo, pieceBytes)
         return false;
     }
 
-    var algorithm = convert(pieceInfo["hashingAlgorithm"]);
+    var algorithm = convertAlg(pieceInfo["hashingAlgorithm"]);
     var correctHash = pieceInfo["hash"];
 
     var startTime = new Date().getTime();
@@ -206,7 +205,7 @@ function checkPiece(pieceInfo, pieceBytes)
     return true;
 }
 
-function convert(algorithmString)
+function convertAlg(algorithmString)
 {
     switch(algorithmString)
     {

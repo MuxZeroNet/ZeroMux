@@ -43,6 +43,9 @@
             Your browser does not support video tag.
         </video>
     </div>
+    <div id="download">
+        You are watching XYZ.mp4
+    </div>
     <div>
         Technical details are logged to console.
     </div>
@@ -58,12 +61,22 @@
         // video/mp4; codecs="......"
         // quotation marks are required
 
-        var videoElement = document.getElementById('video-player');
 
-        var cbFn = function(obj)
+        function onFinish(blob)
         {
-            console.log(obj);
-        };
+            var blobUrl = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = "Super important video.mp4";
+            link.innerText = "Download this file";
+            document.getElementById('download').appendChild(link);
+        }
+        var userEvents = initEventObj();
+        userEvents.onfinish = onFinish; // bind your own event handler
+        withUserEvents(args, userEvents);
+
+        var videoElement = document.getElementById('video-player');
+        var cbFn = function(obj) { console.log(obj); };
 
         downloadAndAttach(args, videoElement, cbFn);
     </script>

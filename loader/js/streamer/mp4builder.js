@@ -271,7 +271,7 @@ function BuildNewMoovBox(mvhdBox, trakBoxList, mvexBox)
 {
     var moovContent = PackBox(mvhdBox, true);
     //for trakBox in trakBoxList:
-    for (trakBox of trakBoxList)
+    for (var trakBox of trakBoxList)
     {
         //moovContent += PackBox(trakBox); // "folder" box
         moovContent = concatArrays(moovContent, PackBox(trakBox));
@@ -441,10 +441,9 @@ function BuildNewTrunBox(fromFrame, toFrame, handler, sampleInfo)
     }
 
 
-    for (entry of entries)
+    for (var entry of entries)
     {
         //duration, size, ctts = entry;
-        var dsc = entry;
         var duration = entry[0];
         var size = entry[1];
         var ctts = entry[2];
@@ -483,11 +482,6 @@ function BuildNewTrunBox(fromFrame, toFrame, handler, sampleInfo)
 
     return newTfdtBox;
 
-}
-
-function ExtractTrunEntries(chunkNumber, handler, sampleInfo)
-{
-    throw "Not implemented.";
 }
 
 function CalcTrunSize(entryCount, handler)
@@ -612,7 +606,7 @@ function MakeNewMoof(trackId, handler, fromFrame, toFrame, sampleInfo, seqNumber
     //firstSampleDt, ctOffset = GetSampleTimestamp(fromFrame, sampleInfo);
     var f_c = GetSampleTimestamp(fromFrame, sampleInfo);
     var firstSampleDt = f_c[0];
-    var ctOffset = f_c[1];
+    // var ctOffset = f_c[1];
 
     var newTfhdBox = BuildNewTfhdBox(trackId, handler);
     var newTfdtBox = BuildNewTfdtBox(firstSampleDt);
@@ -713,7 +707,7 @@ function GetFrameData(from_Frame, to_Frame, sampleInfo, fileStream)
         // [firstSample, sampleBound)
 
 
-        var add = 0
+        var add = 0;
         var rightBound = chunkOffset + chunkSize;
         // left offset, right bound
 
@@ -744,7 +738,7 @@ function GetFrameData(from_Frame, to_Frame, sampleInfo, fileStream)
         {
             // toFrame is within this chunk -- we are reaching the end
             var partialChunkSize = GetChunkLength(chunkNumber, sampleInfo,
-                to_Frame+1 - firstSample, firstSample)
+                to_Frame+1 - firstSample, firstSample);
             // In GetChunkLength:
             //      sampleBound = firstSample + count
             //   => count = sampleBound - firstSample
@@ -792,7 +786,7 @@ function FindItemInTable(fromFrame, sampleTable)
 {
     // fromFrame: sample number
     // (chunk number, chunk size, first sample, sample count)
-    for (item of sampleTable)
+    for (var item of sampleTable)
     {
         if (item[2] <= fromFrame && fromFrame < item[2] + item[3])
         {
